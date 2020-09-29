@@ -1,0 +1,6 @@
+int LANDAU_NX 50
+int LANDAU_NY 1
+int LANDAU_NZ 1
+double LANDAU_DXYZ 0.25
+double LANDAU_DELT 0.02
+double LANDAU_T0 0.0

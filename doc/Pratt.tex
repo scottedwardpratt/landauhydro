@@ -1,0 +1,94 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+
+%opening
+\geometry{
+  body={6.5in, 9.0in},
+  left=0.8in,
+  top=1.0in
+}
+
+\begin{document}
+
+%\maketitle
+
+%\begin{abstract}
+
+%\end{abstract}
+%\section{Introduction}
+The mean-field contribution to the energy-momentum tensor,
+\begin{eqnarray}
+T_{\kappa}^{\mu\nu}=&& \kappa(\rho\partial_{\sigma} \rho)\bigg\{\langle\partial^{\mu}u^{\sigma}\rangle u^{\nu}+\langle\partial^{\nu}u^{\sigma}\rangle u^{\mu}\bigg\} 
+              +\kappa\langle\partial^{\mu}\rho\rangle \langle\partial^{\nu}\rho\rangle
+              -\frac{\kappa}{2}\rho^3 \bigg\{u^{\mu}\partial^{\nu}\bigg[\frac{\vec{\nabla}\cdot \vec{v}}{\rho}\bigg]+u^{\nu}\partial^{\mu}\bigg[\frac{\vec{\nabla}\cdot \vec{v}}{\rho}\bigg] \bigg\}  \nonumber\\
+              +&& \kappa\bigg\{ \frac{2}{3}\rho^{1/2}\partial^2(\rho^{3/2})-\frac{1}{2}\rho^2(\vec{\nabla}\cdot \vec{v})^2+\rho^2 u^{\alpha}\partial_{\alpha}\partial_{\beta}u^{\beta} \bigg\}g^{\mu\nu}~\nonumber\\
+              -&& \kappa\bigg\{ \frac{2}{3}\rho^{1/2}\partial^2(\rho^{3/2})-\frac{3}{2}\rho^2(\vec{\nabla}\cdot \vec{v})^2 \bigg\}u^{\mu}u^{\nu}~,
+\label{Eq1}              
+\end{eqnarray}
+with
+\begin{equation}
+ u^{\mu}=\gamma (1,\vec{v})~,~~~~~~~~~\gamma=\frac{1}{\sqrt{1-v^2}}~
+\end{equation}
+The rank-2 symmetric projection tensor is
+\begin{equation}
+ \langle A^{\mu}B^{\nu}\rangle=\frac{1}{2}\big\{\Delta^{\mu\alpha}\Delta^{\nu\beta}+\Delta^{\mu\beta}\Delta^{\nu\alpha}\big\}A_{\alpha}B_{\beta},~~~~~~~~\Delta^{\mu\nu}=g^{\mu\nu}-u^{\mu}u^{\nu}.
+ \label{proj}
+\end{equation}
+For a comoving frame $u^{\mu}=(1,\vec{0})$, the property of projection tensor,
+\begin{equation}
+ \langle A^{0}B^{\mu}\rangle=\langle A^{\mu}B^{0}\rangle=0,
+\end{equation}
+since $\Delta^{\mu 0}=0$. So the projection tensor in the first two terms of $T_{\kappa}^{\mu\nu}$ only project out the vector component of the associated quantities.
+
+The conservation equation of density $\rho$,
+\begin{equation}
+ D\rho=-\rho \vec{\nabla}\cdot\vec{v}~.
+ \label{rho}
+\end{equation}
+
+
+Using these properties, from Eq.(\ref{Eq1}),
+
+\begin{eqnarray}
+ T_{\kappa}^{00}=&&0,\\
+ T_{\kappa}^{ij}=&&\kappa(\partial^i \rho)(\partial^j \rho)-\kappa\big\{\rho\nabla^2\rho+\frac{1}{2}(\vec{\nabla}\rho)^2\big\}\delta^{ij}~,\\
+ T_{\kappa}^{i0}=&&-\frac{\kappa}{2}(\rho\partial_j\rho)\big\{\partial^{i}u^j+\partial^j u^{i}\big\}+\frac{\kappa}{2}(\vec{\nabla}\cdot\vec{v})\big\{\rho\partial^{i}\rho\big\}-\frac{\kappa}{2}\rho^2\big\{\partial^i(\vec{\nabla}\cdot\vec{v})\big\}~.
+\end{eqnarray}
+Furthermore, the additional contribution to the energy density due to (\ref{Eq1}),
+\begin{equation}
+ u_{\mu}u_{\nu}T_{\kappa}^{\mu\nu}=0~.
+\end{equation}
+\\
+{\bf{Important identities :}}
+\begin{enumerate}
+ 
+\item 
+\begin{eqnarray}
+ \nabla^2\rho=&&\nabla_{\mu}\nabla^{\mu}\rho~\nonumber\\
+             =&&\partial^2\rho-D^2\rho+\frac{1}{\rho}(D\rho)^2~\nonumber\\
+             =&& \partial^2\rho-D^2\rho+\rho(\vec{\nabla}\cdot \vec{v})^2~.
+\label{ID1}             
+\end{eqnarray}
+Here, $\partial^2=\partial^{\mu}\partial_{\mu}$, $\partial_{\mu}=u_{\mu}D+\nabla_{\mu}$, $D=u^{\mu}\partial_{\mu}$ and $\nabla_{\mu}=\Delta_{\mu\nu}\partial^{\nu}$.
+\\
+\item
+\begin{equation}
+(\vec{\nabla}\rho)^2=(\nabla_{\mu}\rho)(\nabla^{\mu}\rho)=(\partial \rho)^2-(D\rho)^2~,~~~~~~~~~~~~~~~~(\partial \rho)^2=(\partial^{\mu}\rho)(\partial_{\mu}\rho)~.
+\label{ID2}
+\end{equation}
+\\
+\item With the help of Eq.(\ref{ID1}), (\ref{ID2}) and (\ref{rho}) we obtain the coefficient of the $g^{\mu\nu}$ term in Eq.(\ref{Eq1}),
+\begin{eqnarray}
+ \rho\nabla^2\rho+\frac{1}{2}(\vec{\nabla}\rho)^2=&&\rho\partial^2\rho+\frac{1}{2}(\partial \rho)^2-\rho D^2\rho +\frac{1}{2}(D\rho)^2\nonumber\\
+ =&& \frac{2}{3}\rho^{1/2}\partial^2(\rho^{3/2})-\frac{1}{2}\rho^2(\vec{\nabla}\cdot \vec{v})^2+\rho^2 u^{\alpha}\partial_{\alpha}\partial_{\beta}u^{\beta}~,
+\end{eqnarray}
+where $\frac{2}{3}\rho^{1/2}\partial^2(\rho^{3/2})=\rho\partial^2\rho+\frac{1}{2}(\partial\rho)^2$ and in a comoving frame $u^{\alpha}\partial_{\alpha}\partial_{\beta}u^{\beta}=D(\vec{\nabla}\cdot\vec{v})$.
+\\
+\item Similarly, the coefficient of the $u^{\mu}u^{\nu}$ term in Eq.(\ref{Eq1}) turns out to be,
+\begin{equation}
+ \rho D^2\rho-2(D\rho)^2+\rho\nabla^2\rho+\frac{1}{2}(\vec{\nabla}\rho)^2=\frac{2}{3}\rho^{1/2}\partial^2(\rho^{3/2})-\frac{3}{2}\rho^2(\vec{\nabla}\cdot \vec{v})^2~.
+\end{equation}
+
+\end{enumerate}
+\end{document}
