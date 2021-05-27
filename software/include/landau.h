@@ -20,7 +20,7 @@ class CLandauCell;
 
 class CLandau{
 public:
-	CParameterMap *parmap;
+	CparameterMap *parmap;
 	int NX,NY,NZ,NDIM;
 	int NRungeKutta;
 	double DELT,DXYZ;
@@ -43,7 +43,7 @@ public:
 	
 	void solve(double *a, double *b, double *c, double *d, int n);
 	void ClearMesh();
-	CLandau(CParameterMap *parmapset);
+	CLandau(CparameterMap *parmapset);
 	vector<vector<vector<CLandauCell>>> cell;
 	double ap[100],bp[100],cp[100],dp[100],AA[100],BB[100],rb[100];
 };

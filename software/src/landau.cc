@@ -2,7 +2,7 @@
 
 using namespace std;
 
-CLandau::CLandau(CParameterMap *parmapset){
+CLandau::CLandau(CparameterMap *parmapset){
 	parmap=parmapset;
 	NDIM=parmap->getI("LANDAU_NDIM",3);
 	DXYZ=parmap->getD("LANDAU_DXYZ",1);
@@ -24,6 +24,7 @@ CLandau::CLandau(CParameterMap *parmapset){
 	CLandauMesh::landau=this;
 	CreateMeshes(parmap->getD("LANDAU_T0",0.0));
 }
+
 //-------------------------------------------------------------
 void CLandau::solve(double* a, double* b, double *c, double *d, int n){
 	n--; 
@@ -45,13 +46,11 @@ void CLandau::solve(double* a, double* b, double *c, double *d, int n){
 }
 //-------------------------------------------------------------
 void CLandau::CreateMeshes(double tset){
-
 	oldmesh=new CLandauMesh(this,tset-DELT);
 	currentmesh=new CLandauMesh(this,tset);
 	newmesh=new CLandauMesh(this,tset+DELT);
 	currentmesh->InitializeDensities();
 	oldmesh->InitializeDensities();
-
 }
 
 void CLandau::CycleMeshes(){
@@ -71,13 +70,13 @@ void CLandau::Propagate(){
 }
 
 void CLandau::PropagateFirst(){
-	DELT=0.5*fabs(DELT);
+	DELT=0.5*DELT;
 	PropagateRhoB();
 	PropagateT0i();
 	PropagateT00();
 	CalcEpsilonU();
 	InterpolateOldMesh();
-	DELT=2.0*fabs(DELT);
+	DELT=2.0*DELT;
 	PropagateRhoB();
 	PropagateT0i();
 	PropagateT00();
@@ -126,6 +125,7 @@ void CLandau::PropagateRhoB(){
 	} 
 
 }
+
 //----------------------------------------------------------------
 void CLandau::PropagateT0i(){
 	int ix,iy,iz,k;
@@ -150,7 +150,7 @@ void CLandau::PropagateT0i(){
 
 //---------------------------------------------------------------
 void CLandau::PropagateT00(){
-	int ix,iy,iz,k;
+	int ix,iy,iz;
 	CLandauCell *c,*oldc,*newc;
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
@@ -163,19 +163,15 @@ void CLandau::PropagateT00(){
 		}
 	} 
 }
-//----------------------------------------------------------------
 
+//----------------------------------------------------------------
 void CLandau::PrintInfo(){
-	int ix,iy,iz,i;
-	double x,y,z;
+	int ix,iy,iz;
 	CLandauCell *cnew,*cold,*ccurrent;
 	printf("----------TIME=%g -------------\n",newmesh->t);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
-				x=ix*DXYZ;
-				y=iy*DXYZ;
-				z=iy*DXYZ;
 				ccurrent=&(currentmesh->cell[ix][iy][iz]);
 				cold=&(oldmesh->cell[ix][iy][iz]);
 				cnew=&(newmesh->cell[ix][iy][iz]);
@@ -206,8 +202,8 @@ void CLandau::PrintInfo(){
 }
 
 void CLandau::WriteInfo(){
-	int ix,iy,iz,i;
-	double x,y,z,time=newmesh->t;
+	int ix,iy,iz;
+	double time=newmesh->t;
 	double maxdens=0.0;
 	char filename[100];
 	sprintf(filename,"output/current_t%g.dat",time);
@@ -216,9 +212,6 @@ void CLandau::WriteInfo(){
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
-				x=ix*DXYZ;
-				y=iy*DXYZ;
-				z=iy*DXYZ;
 				ccurrent=&(currentmesh->cell[ix][iy][iz]);
 				cold=&(oldmesh->cell[ix][iy][iz]);
 				cnew=&(newmesh->cell[ix][iy][iz]);
@@ -252,7 +245,7 @@ void CLandau::WriteInfo(){
 }
 
 void CLandau::CalcEpsilonU(){
-	int ix,iy,iz,irk,i;
+	int ix,iy,iz,irk;
 	CLandauCell *c,*oldc,*newc;
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){

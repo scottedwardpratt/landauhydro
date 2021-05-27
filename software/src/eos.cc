@@ -1,6 +1,6 @@
 #include "eos.h"
 
-CEoS::CEoS(CParameterMap *parmapset){
+CEoS::CEoS(CparameterMap *parmapset){
 	parmap=parmapset;  
 	kappa=parmap->getD("EOS_KAPPA",0.0);
 	mass=parmap->getD("EOS_MASS",1.0);

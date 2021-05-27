@@ -15,9 +15,9 @@
 
 class CEoS{
 public:
-	CParameterMap *parmap;
+	CparameterMap *parmap;
 	CEoS(){};
-	CEoS(CParameterMap *parmapin);
+	CEoS(CparameterMap *parmapin);
 	double kappa,mass;
 	void eos(double epsilon,double rhoB,double &T,double &Pr);
 };

@@ -38,7 +38,7 @@ class CAction;
 class CB3D;
 class CB3DCell;
 class CRandom;
-class CParameterMap;
+class CparameterMap;
 class CBalanceArrays;
 class CSampler;
 class CLocalInfo;
