@@ -30,8 +30,6 @@ void CLandauCell::Zero(){
 }
 
 void CLandauCell::PrintInfo(){
-	int i;
-	printf("-----CellInfo: i=%d -----\n",i);
 	printf("rhoB=%g, epsilon=%g, u=(%g,%g,%g)\n",jB[0],epsilon,u[1],u[2],u[3]);
 }
 

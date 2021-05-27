@@ -1,9 +1,9 @@
 #include "landau.h"
 using namespace std;
 
-int main(int argc, char *argv[]){
+int main(){
 	int nprint=1000,iprint=0;
-	CParameterMap parmap;
+	CparameterMap parmap;
 	parmap.ReadParsFromFile("parameters.dat");
 	CLandau landau(&parmap);
 	

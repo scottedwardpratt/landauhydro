@@ -1,8 +1,10 @@
 #include "landau.h"
 CLandau *CLandauMesh::landau=NULL;
 CEoS *CLandauMesh::eos=NULL;
+double CLandauMesh::DXYZ=0.0;
 
-CLandauMesh::CLandauMesh(CLandau *landau,double tset){
+CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
+	landau=landauset;
 	t=tset;
 	int ix,iy,iz; 
 	NX=landau->NX; NY=landau->NY; NZ=landau->NZ;
@@ -17,7 +19,7 @@ CLandauMesh::CLandauMesh(CLandau *landau,double tset){
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
-
+				
 				if(ix>0)
 					cell[ix][iy][iz].neighborMinus[1]=&cell[ix-1][iy][iz];
 				else
@@ -46,10 +48,9 @@ CLandauMesh::CLandauMesh(CLandau *landau,double tset){
 				if(iz<NZ-1)
 					cell[ix][iy][iz].neighborPlus[3]=&cell[ix][iy][iz+1];
 				else 
-					cell[ix][iy][iz].neighborPlus[3]=&cell[ix][iy][0];	
-					
+					cell[ix][iy][iz].neighborPlus[3]=&cell[ix][iy][0];
+								
 				cell[ix][iy][iz].Zero();
-
 			}
 		}
 	}
@@ -95,8 +96,7 @@ void CLandauMesh::InitializeDensities(){
 }
 
 void CLandauMesh::WriteInfo(){
-	int ix,iy,iz,i;
-	double x,y,z;
+	int ix,iy,iz;
 	char filename[140];
 	sprintf(filename,"rhoB_%g.dat",t);
 	FILE *fptr=fopen(filename,"w");
@@ -105,9 +105,6 @@ void CLandauMesh::WriteInfo(){
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
-				x=ix*DXYZ;
-				y=iy*DXYZ;
-				z=iy*DXYZ;
 				c=&(cell[ix][iy][iz]);
 				fprintf(fptr,"%3d %3d %3d %12.5e",ix,iy,iz,c->jB[0]);
 				fprintf(fptr," %12.5e",c->jB[1]);
@@ -123,16 +120,12 @@ void CLandauMesh::WriteInfo(){
 }
 
 void CLandauMesh::PrintInfo(){
-	int ix,iy,iz,i;
-	double x,y,z;
+	int ix,iy,iz;
 	CLandauCell *c;
 	printf("----------TIME=%g -------------\n",t);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
-				x=ix*DXYZ;
-				y=iy*DXYZ;
-				z=iy*DXYZ;
 				c=&(cell[ix][iy][iz]);
 				printf("%3d %3d %3d %12.5e",ix,iy,iz,c->jB[0]);
 				printf(" %12.5e",c->jB[1]);

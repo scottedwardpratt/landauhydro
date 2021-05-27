@@ -53,7 +53,7 @@ public:
 	vector<vector<vector<CLandauCell>>> cell;
 	static CLandau *landau;
 	int NX,NY,NZ;
-	double DXYZ;
+	static double DXYZ;
 	double t;
 	CLandauMesh(CLandau *landauset,double tset);
 	void CalcU();
@@ -67,7 +67,6 @@ public:
 class CLandauCell{
 public:
 	CLandauCell();
-	vector<vector<vector<CLandauCell>>> cell;
 	int ix,iy,iz;  // coordinates of cell
 	CLandau *landau; // to 
 	vector<double> u;  // velocity
