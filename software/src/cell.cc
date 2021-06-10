@@ -87,7 +87,7 @@ void CLandauCell::CalcM(){
 	CalcGradRhoB(GradRhoB);
 	for(i=1;i<=NDIM;i++){
 		M[i]=0.0;
-		M[i]=0.5*eos->kappa*jB[0]*jB[0]*(neighborPlus[i]->DelDotU()-neighborMinus[i]->DelDotU())/(2.0*DXYZ);
+		M[i]=-0.5*eos->kappa*jB[0]*jB[0]*(neighborPlus[i]->DelDotU()-neighborMinus[i]->DelDotU())/(2.0*DXYZ);
 		M[i]+=0.5*eos->kappa*jB[0]*DelDotU()*GradRhoB[i];
 		for(j=1;j<=NDIM;j++){
 			M[i]-=0.5*eos->kappa*jB[0]*GradRhoB[j]
@@ -110,11 +110,6 @@ void CLandauCell::CalcEpsilonSE(){
 		gradrhoB2+=gradrhoB[i]*gradrhoB[i];
 	}
 	epsilonk=epsilon+0.5*eos->kappa*jB[0]*grad2rhoB;
-	if(epsilonk!=epsilonk || jB[0]!=jB[0]){
-		printf("XXXXXXXX epsilonk=%g, epsilon=%g, grad2rhoB=%g\n",epsilonk,epsilon,grad2rhoB);
-		printf("u=(%g,%g,%g)\n",u[1],u[2],u[3]);
-		exit(1);
-	}
 	eos->eos(epsilonk,jB[0],T,Pr,SoverB,cs2);
 	
 	for(i=1;i<=NDIM;i++){

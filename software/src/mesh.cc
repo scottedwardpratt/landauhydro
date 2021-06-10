@@ -64,7 +64,7 @@ void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz;
 	int nx=1,ny=0,nz=0;
 	CLandauCell *c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=1.0,T0=1.0,cs2,cs20,omega0,SoverB0,epsilon0=1.5,P0,Arho=0.01;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=1.0,T0=1.0,cs2,cs20,omega0,SoverB0,epsilon0=1.5,P0,Arho=0.001;
 	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
@@ -88,9 +88,9 @@ void CLandauMesh::Initialize(double tset){
 				c->T=T0*pow(c->jB[0]/jB0,2.0/3.0);
 				c->Pdens[0]=1.5*c->jB[0]*c->T;
 				eos->eos(c->Pdens[0],c->jB[0],c->T,c->Pr,c->SoverB,cs2);
-				c->Pdens[1]=((5.0*eos->mass*cs20*kx*Arho)/(3.0*jB0*omega0))*sin(kx*x)*cos(ky*y)*cos(kz*z)*sin(omega0*t);
-				c->Pdens[2]=((5.0*eos->mass*cs20*ky*Arho)/(3.0*jB0*omega0))*cos(kx*x)*sin(ky*y)*cos(kz*z)*sin(omega0*t);
-				c->Pdens[3]=((5.0*eos->mass*cs20*kz*Arho)/(3.0*jB0*omega0))*cos(kx*x)*cos(ky*y)*sin(kz*z)*sin(omega0*t);
+				c->Pdens[1]=((eos->mass*cs20*kx*Arho)/(omega0))*sin(kx*x)*cos(ky*y)*cos(kz*z)*sin(omega0*t);
+				c->Pdens[2]=((eos->mass*cs20*ky*Arho)/(omega0))*cos(kx*x)*sin(ky*y)*cos(kz*z)*sin(omega0*t);
+				c->Pdens[3]=((eos->mass*cs20*kz*Arho)/(omega0))*cos(kx*x)*cos(ky*y)*sin(kz*z)*sin(omega0*t);
 			}
 		}
 	}
