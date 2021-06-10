@@ -2,22 +2,18 @@
 using namespace std;
 
 int main(){
-	int nprint=1000,iprint=0;
+	int nprint,iprint=0,it;
 	CparameterMap parmap;
 	parmap.ReadParsFromFile("parameters.dat");
 	CLandau landau(&parmap);
-	
-	int it,nt;
-	
-	printf("Enter number of time steps: (delt=%g): ",landau.DELT);
-	scanf("%d",&nt);
-	landau.PropagateFirst();
-	landau.WriteInfo();
-	for(it=1;it<=nt;it++){
+	nprint=landau.NT/100;
+	landau.currentmesh->WriteXSliceInfo(0,0);
+	for(it=1;it<=landau.NT;it++){
 		landau.Propagate(); // Updates newmesh using currentmesh and oldmesh
 		iprint+=1;
 		if(iprint==nprint){
-			landau.WriteInfo();
+			landau.newmesh->WriteXSliceInfo(0,0);
+			landau.newmesh->CalculateBtotEtot();
 			iprint=0;
 		}
 		landau.CycleMeshes();

@@ -2,6 +2,10 @@
 CLandau *CLandauMesh::landau=NULL;
 CEoS *CLandauMesh::eos=NULL;
 double CLandauMesh::DXYZ=0.0;
+int CLandauMesh::NX=1;
+int CLandauMesh::NY=1;
+int CLandauMesh::NZ=1;
+int CLandauMesh::NDIM=3;
 
 CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
 	landau=landauset;
@@ -56,16 +60,22 @@ CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
 	}
 }
 
-void CLandauMesh::InitializeDensities(){
-	int ix,iy,iz,i,j,NDIM=landau->NDIM;
-	double T,Pr;
+void CLandauMesh::Initialize(double tset){
+	int ix,iy,iz;
+	int nx=1,ny=0,nz=0;
 	CLandauCell *c;
-	double T0=0.01;
-	double x,y,z,Lx,Ly,Lz;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=1.0,T0=1.0,cs2,cs20,omega0,SoverB0,epsilon0=1.5,P0,Arho=0.01;
+	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
 	Lz=NZ*DXYZ;
-
+	kx=2.0*PI*nx/Lx;
+	ky=2.0*PI*ny/Ly;
+	kz=2.0*PI*nz/Lz;
+	eos->eos(epsilon0,jB0,T0,P0,SoverB0,cs20);
+	omega0=sqrt((kx*kx+ky*ky+kz*kz)*cs20);
+	printf("T0=%g, c_s^2=%g\n",T0,cs20);
+	
 	for(ix=0;ix<NX;ix++){
 		x=DXYZ*ix;
 		for(iy=0;iy<NY;iy++){
@@ -74,25 +84,26 @@ void CLandauMesh::InitializeDensities(){
 				z=DXYZ*iz;
 				c=&cell[ix][iy][iz];
 				c->Zero();
-				c->jB[0]=1.0+0.01*cos(2.0*PI*x/Lx)*cos(2.0*PI*y/Ly)*cos(2.0*PI*z/Lz);
-				c->epsilon=eos->mass*c->jB[0]+c->jB[0]*1.5*T0;
-				//printf("--------------\nBefore: mass=%g, epsilon=%g, rhoB=%g, T0=%g\n",
-				//eos->mass,c->epsilon,c->jB[0],T0);	
-				eos->eos(c->epsilon,c->jB[0],T,Pr);
-				//printf("after: T=%g =? %g, Pr=%g\n",T,T0,Pr);
-				for(i=0;i<=NDIM;i++){
-					c->u[i]=0.0;
-					if(i>0)
-						c->jB[i]=0.0;
-					for(j=0;j<=NDIM;j++){
-						c->SE[i][j]=0.0;
-						if(i==j)
-							c->SE[i][j]=Pr;
-					}
-				}
+				c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*cos(omega0*t);
+				c->T=T0*pow(c->jB[0]/jB0,2.0/3.0);
+				c->Pdens[0]=1.5*c->jB[0]*c->T;
+				eos->eos(c->Pdens[0],c->jB[0],c->T,c->Pr,c->SoverB,cs2);
+				c->Pdens[1]=((5.0*eos->mass*cs20*kx*Arho)/(3.0*jB0*omega0))*sin(kx*x)*cos(ky*y)*cos(kz*z)*sin(omega0*t);
+				c->Pdens[2]=((5.0*eos->mass*cs20*ky*Arho)/(3.0*jB0*omega0))*cos(kx*x)*sin(ky*y)*cos(kz*z)*sin(omega0*t);
+				c->Pdens[3]=((5.0*eos->mass*cs20*kz*Arho)/(3.0*jB0*omega0))*cos(kx*x)*cos(ky*y)*sin(kz*z)*sin(omega0*t);
 			}
 		}
 	}
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				c=&cell[ix][iy][iz];
+				CalculateUJMEpsilonSE();
+			}
+		}
+	}
+				
+	printf("Initialized\n");
 }
 
 void CLandauMesh::WriteInfo(){
@@ -119,6 +130,50 @@ void CLandauMesh::WriteInfo(){
 	}
 }
 
+void CLandauMesh::WriteXSliceInfo(int iy,int iz){
+	int ix;
+	double maxdens=0.0,mindens=1000000.0;
+	char filename[140]; 
+	sprintf(filename,"output/xslice_t%g.dat",t);
+	FILE *fptr=fopen(filename,"w");
+	CLandauCell *c;
+	//	printf("----------TIME=%g -------------\n",currentmesh->t);
+	for(ix=0;ix<NX;ix++){
+		c=&(cell[ix][iy][iz]);
+		fprintf(fptr,"%12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e\n",ix*DXYZ,c->jB[0],c->jB[1],c->epsilon,c->u[1],c->Pr,c->T);
+		if(c->jB[0]>maxdens)
+			maxdens=c->jB[0];
+		if(c->jB[0]<mindens)
+			mindens=c->jB[0];
+	} 
+	printf("t=%g: %g < dens < %g\n",t,mindens,maxdens);
+	fclose(fptr);
+}
+
+void CLandauMesh::CalculateBtotEtot(){
+	double Btot=0.0,Stot=0.0,Etot=0.0;
+	vector<double> Ptot(NDIM+1);
+	double dOmega=pow(DXYZ,NDIM);
+	int ix,iy,iz,i;
+	CLandauCell *c;
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				c=&(cell[ix][iy][iz]);
+				Btot+=c->jB[0]*dOmega;
+				Stot+=c->SoverB*c->jB[0]*dOmega;
+				Etot+=c->Pdens[0]*dOmega;
+				for(i=0;i<=NDIM;i++)
+					Ptot[i]+=c->Pdens[i]*dOmega;
+			}
+		}
+	}
+	printf("t=%g, Btot=%g, Etot=%g, Stot=%g\n",t,Btot,Etot,Stot);
+	for(i=1;i<=NDIM;i++)
+		printf(", Ptot[%d]=%g",i,Ptot[i]);
+	printf("\n");
+}
+
 void CLandauMesh::PrintInfo(){
 	int ix,iy,iz;
 	CLandauCell *c;
@@ -139,4 +194,28 @@ void CLandauMesh::PrintInfo(){
 	}
 }
 
+void CLandauMesh::CalculateUJMEpsilonSE(){
+	int ix,iy,iz,i;
+	CLandauCell *c;
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				for(i=1;i<=NDIM;i++){
+					c=&cell[ix][iy][iz];
+					c->u[i]=c->Pdens[i]/(eos->mass*c->jB[0]);
+					c->jB[i]=c->u[i]*c->jB[0];
+				}
+			}
+		}
+	}
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				c=&cell[ix][iy][iz];
+				c->CalcM();
+				c->CalcEpsilonSE();
+			}
+		}
+	}
+}
 

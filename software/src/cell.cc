@@ -5,8 +5,9 @@ int CLandauCell::NDIM=3;
 CEoS *CLandauCell::eos=NULL;
 
 CLandauCell::CLandauCell(){
-	int i;
+	int i,j;
 	u.resize(NDIM+1);
+	Pdens.resize(NDIM+1);
 	M.resize(NDIM+1);
 	jB.resize(NDIM+1);
 	SE.resize(NDIM+1);
@@ -14,6 +15,9 @@ CLandauCell::CLandauCell(){
 	neighborPlus.resize(NDIM+1);
 	for(i=0;i<=NDIM;i++){
 		SE[i].resize(NDIM+1);
+		for(j=0;j<=NDIM;j++){
+			SE[i][j]=0.0;
+		}
 	}
 	Zero();
 }
@@ -22,7 +26,7 @@ void CLandauCell::Zero(){
 	int i,j;
 	epsilon=Pr=0.0;
 	for(i=0;i<=NDIM;i++){
-		u[i]=M[i]=jB[i]=0.0;
+		u[i]=M[i]=jB[i]=Pdens[i]=0.0;
 		for(j=0;j<=NDIM;j++){
 			SE[i][j]=0.0;
 		}
@@ -30,7 +34,7 @@ void CLandauCell::Zero(){
 }
 
 void CLandauCell::PrintInfo(){
-	printf("rhoB=%g, epsilon=%g, u=(%g,%g,%g)\n",jB[0],epsilon,u[1],u[2],u[3]);
+	printf("jB=(%g,%g,%g,%g), epsilon=%g, u=(%g,%g,%g)\n",jB[0],jB[1],jB[2],jB[3],epsilon,u[1],u[2],u[3]);
 }
 
 double CLandauCell::Grad2RhoB(){
@@ -51,21 +55,12 @@ void CLandauCell::CalcGradRhoB(vector<double> &GradRhoB){
 
 void CLandauCell::CalcDeliTij(vector<double> &DeliTij){
 	int i,j;
-	for(i=1;i<=NDIM;i++){
+	for(i=0;i<=NDIM;i++){
 		DeliTij[i]=0.0;
-		for(j=1;j<=NDIM;j++){
+		for(j=1;j<=NDIM;j++){			
 			DeliTij[i]+=0.5*(neighborPlus[j]->SE[i][j]-neighborMinus[j]->SE[i][j])/DXYZ;
 		}
 	}
-}
-
-double CLandauCell::DelDotT0i(){
-	int i;
-	double answer=0.0;
-	for(i=1;i<=NDIM;i++)
-		answer+=neighborPlus[i]->SE[0][i]-neighborMinus[i]->SE[0][i];
-	answer=answer/(2.0*DXYZ);
-	return answer;
 }
 
 double CLandauCell::DelDotU(){
@@ -102,41 +97,34 @@ void CLandauCell::CalcM(){
 	}
 }
 
-void CLandauCell::CalcEpsilonU(){
-	int i;
-	double mass=eos->mass,vsquared=0.0;
-	CalcM();
-	for(i=1;i<=NDIM;i++){
-		u[i]=(SE[0][i]-M[i])/(jB[0]*mass);
-		jB[i]=u[i]*jB[0];
-		vsquared+=u[i]*u[i];
-	}
-	epsilon=SE[0][0]-jB[0]*mass*(1.0+0.5*vsquared);
-	for(i=1;i<=NDIM;i++)
-		epsilon-=2.0*M[i]*u[i];
-}
-
-void CLandauCell::CalcTij(){
+void CLandauCell::CalcEpsilonSE(){
 	int i,j;
-	double vsquared=0.0,epsilonk,grad2rhoB,gradrhoB2=0.0;
+	double epsilonk,grad2rhoB,gradrhoB2=0.0,mass=eos->mass,cs2;
 	vector<double> gradrhoB(NDIM+1);
+	epsilon=Pdens[0];
+	for(i=1;i<=NDIM;i++)
+		epsilon-=(M[i]*u[i]+0.5*eos->mass*jB[0]*u[i]*u[i]);
 	grad2rhoB=Grad2RhoB();
 	CalcGradRhoB(gradrhoB);
 	for(i=1;i<=NDIM;i++){
 		gradrhoB2+=gradrhoB[i]*gradrhoB[i];
 	}
-	epsilonk=epsilon+0.5*jB[0]*grad2rhoB;
-	eos->eos(epsilonk,jB[0],T,Pr);
-	for(i=1;i<=NDIM;i++)
-		vsquared+=u[i]*u[i];
+	epsilonk=epsilon+0.5*eos->kappa*jB[0]*grad2rhoB;
+	if(epsilonk!=epsilonk || jB[0]!=jB[0]){
+		printf("XXXXXXXX epsilonk=%g, epsilon=%g, grad2rhoB=%g\n",epsilonk,epsilon,grad2rhoB);
+		printf("u=(%g,%g,%g)\n",u[1],u[2],u[3]);
+		exit(1);
+	}
+	eos->eos(epsilonk,jB[0],T,Pr,SoverB,cs2);
 	
 	for(i=1;i<=NDIM;i++){
-		for(j=i;j<=NDIM;j++){
-			SE[i][j]=eos->mass*u[i]*u[j]+eos->kappa*gradrhoB[i]*gradrhoB[j];
+		SE[0][i]=epsilon*u[i];
+		for(j=1;j<=NDIM;j++){
+			SE[i][j]=eos->kappa*gradrhoB[i]*gradrhoB[j];
 			if(i==j)
 				SE[i][j]+=Pr-eos->kappa*(jB[0]*grad2rhoB+0.5*gradrhoB2);
-			else
-				SE[j][i]=SE[i][j];
+			SE[0][i]+=SE[i][j]*u[j];
+			SE[i][j]+=mass*jB[0]*u[i]*u[j];
 		}
 	}	
 }

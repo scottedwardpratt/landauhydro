@@ -19,7 +19,7 @@ public:
 	CEoS(){};
 	CEoS(CparameterMap *parmapin);
 	double kappa,mass;
-	void eos(double epsilon,double rhoB,double &T,double &Pr);
+	void eos(double epsilon,double rhoB,double &T,double &Pr,double &SoverB,double &cs2);
 };
 
 

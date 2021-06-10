@@ -130,17 +130,17 @@ hydro/fast:
 .PHONY : hydro/fast
 
 #=============================================================================
-# Target rules for targets named extern_landauhudro
+# Target rules for targets named extern_landauhydro
 
 # Build rule for target.
-extern_landauhudro: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 extern_landauhudro
-.PHONY : extern_landauhudro
+extern_landauhydro: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 extern_landauhydro
+.PHONY : extern_landauhydro
 
 # fast build rule for target.
-extern_landauhudro/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/extern_landauhudro.dir/build.make CMakeFiles/extern_landauhudro.dir/build
-.PHONY : extern_landauhudro/fast
+extern_landauhydro/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/extern_landauhydro.dir/build.make CMakeFiles/extern_landauhydro.dir/build
+.PHONY : extern_landauhydro/fast
 
 #=============================================================================
 # Target rules for targets named extern_commonutils
@@ -188,7 +188,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... extern_commonutils"
-	@echo "... extern_landauhudro"
+	@echo "... extern_landauhydro"
 	@echo "... hydro"
 	@echo "... hydromain.o"
 	@echo "... hydromain.i"

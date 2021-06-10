@@ -21,7 +21,7 @@ class CLandauCell;
 class CLandau{
 public:
 	CparameterMap *parmap;
-	int NX,NY,NZ,NDIM;
+	int NX,NY,NZ,NDIM,NT;
 	int NRungeKutta;
 	double DELT,DXYZ;
 	CLandauMesh *currentmesh,*newmesh,*oldmesh;
@@ -30,12 +30,8 @@ public:
 	void CreateMeshes(double t);
 	
 	void Propagate();
-	void PropagateFirst(); // Sets up 3 meshes for first time step
 	void InterpolateOldMesh(); // changes oldmesh to fit with new and current
-	void PropagateRhoB();
-	void PropagateT00();
-	void PropagateT0i();
-	void CalcEpsilonU();
+	void PropagateRhoBPdens();
 	
 	void WriteData1D();
 	void PrintInfo();
@@ -52,37 +48,36 @@ class CLandauMesh{
 public:
 	vector<vector<vector<CLandauCell>>> cell;
 	static CLandau *landau;
-	int NX,NY,NZ;
+	static int NX,NY,NZ,NDIM;
 	static double DXYZ;
 	double t;
 	CLandauMesh(CLandau *landauset,double tset);
-	void CalcU();
-	void CalcEpsilon();
-	void InitializeDensities();
+	void Initialize(double t);
 	static CEoS *eos;
 	void WriteInfo();
+	void WriteXSliceInfo(int iy,int iz);
 	void PrintInfo();
+	void CalculateUJMEpsilonSE();
+	void CalculateBtotEtot();
 };
 
 class CLandauCell{
 public:
 	CLandauCell();
 	int ix,iy,iz;  // coordinates of cell
-	CLandau *landau; // to 
 	vector<double> u;  // velocity
-	vector<double> M; // M is T_0i in restframe
-	vector<vector<double>> SE;  // T_ij
-	double epsilon,Pr,T;
-	vector<double> jB;                
+	vector<double> M; // M is T_0i in restframe (only due to kappa)
+	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
+	vector<vector<double>> SE;  // in lab frame (includes KE...)
+	double epsilon,Pr,T,SoverB;
+	vector<double> jB;
 	vector<CLandauCell *> neighborPlus,neighborMinus;
 	static double DXYZ;
 	static int NDIM;
 	static CEoS *eos;
 	
-	void CalcU(); // Calculates u from T0i, M and jB[0] (even though M came from estimated U)
 	void CalcM(); // Calculates M from T0i, jB[0] and U
-	void CalcEpsilonU(); // Calculates Epsilon and U from T00, T0i, jB[0]
-	void CalcTij(); // From epsilon, jB, U
+	void CalcEpsilonSE(); // Calculates Epsilon and SE tensor from Pdens, U, M
 	
 	double DelDotU();
 	double DelDotJB();

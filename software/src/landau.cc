@@ -9,6 +9,7 @@ CLandau::CLandau(CparameterMap *parmapset){
 	NX=parmap->getI("LANDAU_NX",100);
 	NY=parmap->getI("LANDAU_NY",100);
 	NZ=parmap->getI("LANDAU_NZ",100);
+	NT=parmap->getI("LANDAU_NT",1000);
 	DELT=parmap->getD("LANDAU_DELT",0.01);
 	NRungeKutta=parmap->getI("LANDAU_NRUNGEKUTTA",2);
 	eos=new CEoS(parmap);
@@ -21,6 +22,10 @@ CLandau::CLandau(CparameterMap *parmapset){
 	CLandauCell::NDIM=NDIM;
 	CLandauCell::eos=eos;
 	CLandauMesh::eos=eos;
+	CLandauMesh::NX=NX;
+	CLandauMesh::NY=NY;
+	CLandauMesh::NZ=NY;
+	CLandauMesh::NDIM=NDIM;
 	CLandauMesh::landau=this;
 	CreateMeshes(parmap->getD("LANDAU_T0",0.0));
 }
@@ -45,12 +50,13 @@ void CLandau::solve(double* a, double* b, double *c, double *d, int n){
 	}
 }
 //-------------------------------------------------------------
+
 void CLandau::CreateMeshes(double tset){
 	oldmesh=new CLandauMesh(this,tset-DELT);
 	currentmesh=new CLandauMesh(this,tset);
 	newmesh=new CLandauMesh(this,tset+DELT);
-	currentmesh->InitializeDensities();
-	oldmesh->InitializeDensities();
+	oldmesh->Initialize(tset-DELT);
+	currentmesh->Initialize(tset);
 }
 
 void CLandau::CycleMeshes(){
@@ -62,26 +68,11 @@ void CLandau::CycleMeshes(){
 }
 
 void CLandau::Propagate(){
-	PropagateRhoB();
-	PropagateT0i();
-	PropagateT00();
-	CalcEpsilonU();
+	PropagateRhoBPdens();
+	newmesh->CalculateUJMEpsilonSE();
 	newmesh->t=currentmesh->t+DELT;
 }
 
-void CLandau::PropagateFirst(){
-	DELT=0.5*DELT;
-	PropagateRhoB();
-	PropagateT0i();
-	PropagateT00();
-	CalcEpsilonU();
-	InterpolateOldMesh();
-	DELT=2.0*DELT;
-	PropagateRhoB();
-	PropagateT0i();
-	PropagateT00();
-	CalcEpsilonU();
-}
 
 void CLandau::InterpolateOldMesh(){
 	int ix,iy,iz,j,k;
@@ -109,9 +100,10 @@ void CLandau::InterpolateOldMesh(){
 }
 
 //-----------------------------------------------------------------
-void CLandau::PropagateRhoB(){ 
-	int ix,iy,iz;
+void CLandau::PropagateRhoBPdens(){ 
+	int ix,iy,iz,i;
 	CLandauCell *c,*oldc,*newc;
+	vector<double> DeliTij(4);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
@@ -119,50 +111,15 @@ void CLandau::PropagateRhoB(){
 				oldc=&(oldmesh->cell[ix][iy][iz]);
 				newc=&(newmesh->cell[ix][iy][iz]);
 				newc->jB[0]=oldc->jB[0]-2.0*DELT*c->DelDotJB();
-				//printf("check: ix=%d, DeltDotJB=%g\n",ix,c->DelDotJB());
-			}
-		}
-	} 
-
-}
-
-//----------------------------------------------------------------
-void CLandau::PropagateT0i(){
-	int ix,iy,iz,k;
-	vector<double> DeliTij(NDIM+1);
-	CLandauCell *c,*oldc,*newc;
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				c=&(currentmesh->cell[ix][iy][iz]);
-				oldc=&(oldmesh->cell[ix][iy][iz]);
-				newc=&(newmesh->cell[ix][iy][iz]);
 				c->CalcDeliTij(DeliTij);
-				for(k=1;k<=NDIM;k++){
-					newc->SE[0][k]=oldc->SE[0][k]-2.0*DELT*DeliTij[k];
-					newc->SE[k][0]=newc->SE[0][k];
+				for(i=0;i<=NDIM;i++){
+					newc->Pdens[i]=oldc->Pdens[i]-2.0*DELT*DeliTij[i];
 				}
-				printf("%d %g\n",ix,DeliTij[1]);
-			}
-		}
-	}
-}
-
-//---------------------------------------------------------------
-void CLandau::PropagateT00(){
-	int ix,iy,iz;
-	CLandauCell *c,*oldc,*newc;
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				c=&(currentmesh->cell[ix][iy][iz]);
-				oldc=&(oldmesh->cell[ix][iy][iz]);
-				newc=&(newmesh->cell[ix][iy][iz]);
-				newc->SE[0][0]=oldc->SE[0][0]-2.0*DELT*c->DelDotT0i(); 
 			}
 		}
 	} 
 }
+
 
 //----------------------------------------------------------------
 void CLandau::PrintInfo(){
@@ -242,34 +199,6 @@ void CLandau::WriteInfo(){
 		} 
 	}
 	printf("max density=%g\n",maxdens);
-}
-
-void CLandau::CalcEpsilonU(){
-	int ix,iy,iz,irk;
-	CLandauCell *c,*oldc,*newc;
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				newc=&(newmesh->cell[ix][iy][iz]);
-				c=&(currentmesh->cell[ix][iy][iz]);
-				oldc=&(oldmesh->cell[ix][iy][iz]);
-				newc->CalcM();
-				newc->Pr=2.0*c->Pr-oldc->Pr;
-				printf("Pr[%d]=%g\n",ix,newc->Pr);
-			}
-		}
-	} 
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				newc=&(newmesh->cell[ix][iy][iz]);
-				for(irk=0;irk<NRungeKutta;irk++){
-					newc->CalcEpsilonU();
-				}
-			}
-		} 
-		
-	}
 }
 
 void CLandau::WriteData1D(){

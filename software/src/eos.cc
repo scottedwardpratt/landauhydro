@@ -6,7 +6,9 @@ CEoS::CEoS(CparameterMap *parmapset){
 	mass=parmap->getD("EOS_MASS",1.0);
 }
 
-void CEoS::eos(double epsilon,double rhoB,double &T,double &Pr){
-	Pr=(epsilon-rhoB*mass)/1.5;
+void CEoS::eos(double epsilon,double rhoB,double &T,double &Pr,double &SoverB,double &cs2){
+	Pr=epsilon/1.5;
 	T=Pr/rhoB;
+	SoverB=log(pow(T,1.5)/rhoB);
+	cs2=(5.0/3.0)*T/mass;
 }
