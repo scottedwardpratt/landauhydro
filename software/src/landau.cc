@@ -4,6 +4,7 @@ using namespace std;
 
 CLandau::CLandau(CparameterMap *parmapset){
 	parmap=parmapset;
+	string EOSDEF=parmap->getS("LANDAU_EOS","FreeGas");
 	NDIM=parmap->getI("LANDAU_NDIM",3);
 	DXYZ=parmap->getD("LANDAU_DXYZ",1);
 	NX=parmap->getI("LANDAU_NX",100);
@@ -12,7 +13,17 @@ CLandau::CLandau(CparameterMap *parmapset){
 	NT=parmap->getI("LANDAU_NT",1000);
 	DELT=parmap->getD("LANDAU_DELT",0.01);
 	NRungeKutta=parmap->getI("LANDAU_NRUNGEKUTTA",2);
-	eos=new CEoS(parmap);
+	
+	if(EOSDEF=="FreeGas"){
+		eos=new CEoS_FreeGas(parmap);
+	}
+	else if(EOSDEF=="VdW")
+		eos=new CEoS_VdW(parmap);
+	else{
+		printf("LANDAU_EOS=%s, not recognized\n",EOSDEF.c_str());
+		exit(1);
+	}
+		
 	if(NDIM<3){
 		NZ=1;
 		if(NDIM<2)

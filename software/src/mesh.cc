@@ -64,7 +64,7 @@ void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz;
 	int nx=1,ny=0,nz=0;
 	CLandauCell *c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=1.0,T0=1.0,cs2,cs20,omega0,SoverB0,epsilon0=1.5,P0,Arho=0.001;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.5,T0=2.0/27.0,cs2,cs20,omega0,SoverB0,epsilon0=1.5,P0,Arho=0.01;
 	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
@@ -74,7 +74,6 @@ void CLandauMesh::Initialize(double tset){
 	kz=2.0*PI*nz/Lz;
 	eos->eos(epsilon0,jB0,T0,P0,SoverB0,cs20);
 	omega0=sqrt((kx*kx+ky*ky+kz*kz)*cs20);
-	printf("T0=%g, c_s^2=%g\n",T0,cs20);
 	
 	for(ix=0;ix<NX;ix++){
 		x=DXYZ*ix;
@@ -102,8 +101,6 @@ void CLandauMesh::Initialize(double tset){
 			}
 		}
 	}
-				
-	printf("Initialized\n");
 }
 
 void CLandauMesh::WriteInfo(){
