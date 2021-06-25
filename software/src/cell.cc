@@ -3,6 +3,8 @@
 double CLandauCell::DXYZ=0.0;
 int CLandauCell::NDIM=3;
 CEoS *CLandauCell::eos=NULL;
+double CLandauCell::Tlowest=999999999999.0;
+double CLandauCell::Thighest=0.00000;
 
 CLandauCell::CLandauCell(){
 	int i,j;
@@ -11,6 +13,7 @@ CLandauCell::CLandauCell(){
 	M.resize(NDIM+1);
 	jB.resize(NDIM+1);
 	SE.resize(NDIM+1);
+	Kflow.resize(NDIM+1);
 	neighborMinus.resize(NDIM+1);
 	neighborPlus.resize(NDIM+1);
 	for(i=0;i<=NDIM;i++){
@@ -24,7 +27,7 @@ CLandauCell::CLandauCell(){
 
 void CLandauCell::Zero(){
 	int i,j;
-	epsilon=Pr=0.0;
+	epsilonk=Pr=0.0;
 	for(i=0;i<=NDIM;i++){
 		u[i]=M[i]=jB[i]=Pdens[i]=0.0;
 		for(j=0;j<=NDIM;j++){
@@ -34,7 +37,9 @@ void CLandauCell::Zero(){
 }
 
 void CLandauCell::PrintInfo(){
-	printf("jB=(%g,%g,%g,%g), epsilon=%g, u=(%g,%g,%g)\n",jB[0],jB[1],jB[2],jB[3],epsilon,u[1],u[2],u[3]);
+	printf("jB=(%g,%g,%g,%g), epsilonk=%g\n",jB[0],jB[1],jB[2],jB[3],epsilonk);
+	printf("u=(%g,%g,%g), T=%g, Pr=%g, cs2=%g, SoverB=%g, Kflow=(%g,%g,%g)\n",
+	u[1],u[2],u[3],T,Pr,cs2,SoverB,Kflow[1],Kflow[2],Kflow[3]);
 }
 
 double CLandauCell::Grad2RhoB(){
@@ -72,6 +77,22 @@ double CLandauCell::DelDotU(){
 	return answer/(2.0*DXYZ);
 }
 
+void CLandauCell::CalcKFlow(){
+	int i;
+	for(i=1;i<=NDIM;i++){
+		Kflow[i]=CEoS::Kfactor*sqrt(T/CEoS::mass)*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
+	}
+}
+
+double CLandauCell::CalcDivKFlow(){
+	int i;
+	double DivKFlow=0.0;
+	for(i=1;i<=NDIM;i++){
+		DivKFlow+=(neighborPlus[i]->Kflow[i]-neighborMinus[i]->Kflow[i]);
+	}
+	return DivKFlow/(2.0*DXYZ);
+}
+
 double CLandauCell::DelDotJB(){
 	int i;
 	double answer=0.0;
@@ -99,7 +120,7 @@ void CLandauCell::CalcM(){
 
 void CLandauCell::CalcEpsilonSE(){
 	int i,j;
-	double epsilonk,grad2rhoB,gradrhoB2=0.0,mass=eos->mass,cs2;
+	double grad2rhoB,epsilon,gradrhoB2=0.0,mass=eos->mass;
 	vector<double> gradrhoB(NDIM+1);
 	epsilon=Pdens[0];
 	for(i=1;i<=NDIM;i++)
@@ -110,16 +131,31 @@ void CLandauCell::CalcEpsilonSE(){
 		gradrhoB2+=gradrhoB[i]*gradrhoB[i];
 	}
 	epsilonk=epsilon+0.5*eos->kappa*jB[0]*grad2rhoB;
-	eos->eos(epsilonk,jB[0],T,Pr,SoverB,cs2);
+	eos->CalcEoS(this);
+	if(T<Tlowest){
+		Tlowest=T;
+		if(Tlowest<0.0){
+			printf("Tlowest=%g\n",T);
+			exit(1);
+		}
+	}
+	if(T>Thighest){
+		Thighest=T;
+	}
 	
 	for(i=1;i<=NDIM;i++){
-		SE[0][i]=epsilon*u[i];
 		for(j=1;j<=NDIM;j++){
 			SE[i][j]=eos->kappa*gradrhoB[i]*gradrhoB[j];
 			if(i==j)
 				SE[i][j]+=Pr-eos->kappa*(jB[0]*grad2rhoB+0.5*gradrhoB2);
-			SE[0][i]+=SE[i][j]*u[j];
 			SE[i][j]+=mass*jB[0]*u[i]*u[j];
 		}
+	}
+	for(i=1;i<=NDIM;i++){
+		SE[0][i]=epsilon*u[i];
+		for(j=1;j<=NDIM;j++){
+			SE[0][i]+=SE[i][j]*u[j];
+		}
+		SE[i][0]=SE[0][i];
 	}	
 }

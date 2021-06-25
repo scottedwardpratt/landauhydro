@@ -1,35 +1,57 @@
 #include "eos.h"
+double CEoS::kappa=0.0;
+double CEoS::mass=0.0;
+double CEoS::Kfactor=0.0;
 
 CEoS::CEoS(CparameterMap *parmapset){
 	parmap=parmapset;  
 	kappa=parmap->getD("EOS_KAPPA",0.0);
 	mass=parmap->getD("EOS_MASS",1.0);
+	Kfactor=parmap->getD("EOS_KFACTOR",0.01);
 }
 
 CEoS_FreeGas::CEoS_FreeGas(CparameterMap *parmapset){
-	parmap=parmapset;  
+	parmap=parmapset; 
 	kappa=parmap->getD("EOS_KAPPA",0.0);
 	mass=parmap->getD("EOS_MASS",1.0);
+	Kfactor=parmap->getD("EOS_KFACTOR",1.0);
 }
 
 CEoS_VdW::CEoS_VdW(CparameterMap *parmapset){
 	parmap=parmapset;  
 	kappa=parmap->getD("EOS_KAPPA",0.0);
 	mass=parmap->getD("EOS_MASS",1.0);
+	Kfactor=parmap->getD("EOS_KFACTOR",1.0);
 	a=parmap->getD("EOS_VDW_A",1.0);
 	rho0=parmap->getD("EOS_VDW_RHO0",1.0);
 }
 
-void CEoS_FreeGas::eos(double epsilon,double rhoB,double &T,double &Pr,double &SoverB,double &cs2){
-	Pr=epsilon/1.5;
+void CEoS_FreeGas::CalcEoS(CLandauCell *cell){
+	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
+	double T,Pr,SoverB,cs2,K;
+	Pr=epsilonk/1.5;
 	T=Pr/rhoB;
 	SoverB=log(pow(T,1.5)/rhoB);
 	cs2=(5.0/3.0)*T/mass;
+	K=Kfactor*sqrt(T/mass);
+	cell->T=T;
+	cell->Pr=Pr;
+	cell->SoverB=SoverB;
+	cell->cs2=cs2;
+	cell->K=K;
 }
 
-void CEoS_VdW::eos(double epsilon,double rhoB,double &T,double &Pr,double &SoverB,double &cs2){
-	T=2.0*(epsilon+a*rhoB*rhoB)/(3.0*rhoB);
+void CEoS_VdW::CalcEoS(CLandauCell *cell){
+	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
+	double T,Pr,SoverB,cs2,K;
+	T=2.0*(epsilonk+a*rhoB*rhoB)/(3.0*rhoB);
 	Pr=rhoB*T/(1.0-rhoB/rho0)-a*rhoB*rhoB;
 	SoverB=1.5*log(T)+log((rho0/rhoB)-1.0);
 	cs2=((5.0*T/3.0)/((1.0-rhoB/rho0)*(1.0-rhoB/rho0))-2.0*a*rhoB)/mass;
+	K=Kfactor*sqrt(T/mass);
+	cell->T=T;
+	cell->Pr=Pr;
+	cell->SoverB=SoverB;
+	cell->cs2=cs2;
+	cell->K=K;
 }

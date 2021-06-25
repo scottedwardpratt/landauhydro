@@ -5,9 +5,8 @@ int main(){
 	int nprint,iprint=0,it;
 	CparameterMap parmap;
 	parmap.ReadParsFromFile("parameters.dat");
-	printf("check it out\n");
 	CLandau landau(&parmap);
-	nprint=landau.NT/1000;
+	nprint=lrint(1.0/landau.DELT);
 	landau.currentmesh->WriteXSliceInfo(0,0);
 	for(it=1;it<=landau.NT;it++){
 		landau.Propagate(); // Updates newmesh using currentmesh and oldmesh
@@ -17,8 +16,10 @@ int main(){
 			landau.newmesh->CalculateBtotEtot();
 			iprint=0;
 		}
+		landau.AverageMeshes(1.0);
 		landau.CycleMeshes();
 	}
+	printf("Tlowest=%g, Thighest=%g\n",CLandauCell::Tlowest,CLandauCell::Thighest);
 	//landau.currentmesh->PrintInfo();
 //----------------------------------------------------------------------------------
 //        CLandau rect(10.0);

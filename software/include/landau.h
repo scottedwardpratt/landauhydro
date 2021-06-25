@@ -13,7 +13,7 @@
 #include "randy.h"
 #include "defs.h"
 #include "parametermap.h"
-#include "eos.h"
+class CEoS;
 
 class CLandauMesh;
 class CLandauCell;
@@ -23,7 +23,7 @@ public:
 	CparameterMap *parmap;
 	int NX,NY,NZ,NDIM,NT;
 	int NRungeKutta;
-	double DELT,DXYZ;
+	double DELT,DXYZ,TMAX;
 	CLandauMesh *currentmesh,*newmesh,*oldmesh;
 	CEoS *eos;
 	void CycleMeshes();
@@ -32,6 +32,7 @@ public:
 	void Propagate();
 	void InterpolateOldMesh(); // changes oldmesh to fit with new and current
 	void PropagateRhoBPdens();
+	void AverageMeshes(double weight);
 	
 	void WriteData1D();
 	void PrintInfo();
@@ -63,14 +64,16 @@ public:
 
 class CLandauCell{
 public:
+	static double Tlowest,Thighest;
 	CLandauCell();
 	int ix,iy,iz;  // coordinates of cell
 	vector<double> u;  // velocity
 	vector<double> M; // M is T_0i in restframe (only due to kappa)
 	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
 	vector<vector<double>> SE;  // in lab frame (includes KE...)
-	double epsilon,Pr,T,SoverB;
+	double epsilonk,Pr,T,SoverB,cs2,K;
 	vector<double> jB;
+	vector<double>Kflow;
 	vector<CLandauCell *> neighborPlus,neighborMinus;
 	static double DXYZ;
 	static int NDIM;
@@ -87,6 +90,8 @@ public:
 	void CalcGradPr(vector<double> &GradPr);
 	void CalcGradRhoB(vector<double> &GradRhoB);
 	void CalcDeliTij(vector<double> &DeliTij);
+	double CalcDivKFlow();
+	void CalcKFlow();
 
 	void PrintInfo();
 	void Zero();

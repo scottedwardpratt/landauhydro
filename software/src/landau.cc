@@ -1,4 +1,5 @@
 #include "landau.h"
+#include "eos.h"
 
 using namespace std;
 
@@ -10,8 +11,11 @@ CLandau::CLandau(CparameterMap *parmapset){
 	NX=parmap->getI("LANDAU_NX",100);
 	NY=parmap->getI("LANDAU_NY",100);
 	NZ=parmap->getI("LANDAU_NZ",100);
-	NT=parmap->getI("LANDAU_NT",1000);
+	//NT=parmap->getI("LANDAU_NT",1000);
 	DELT=parmap->getD("LANDAU_DELT",0.01);
+	TMAX=parmap->getD("LANDAU_TMAX",1000.0);
+	NT=lrint(TMAX/DELT);
+	printf("NT=%d\n",NT);
 	NRungeKutta=parmap->getI("LANDAU_NRUNGEKUTTA",2);
 	
 	if(EOSDEF=="FreeGas"){
@@ -84,7 +88,6 @@ void CLandau::Propagate(){
 	newmesh->t=currentmesh->t+DELT;
 }
 
-
 void CLandau::InterpolateOldMesh(){
 	int ix,iy,iz,j,k;
 	CLandauCell *oldc,*newc,*c;
@@ -94,7 +97,7 @@ void CLandau::InterpolateOldMesh(){
 				c=&(currentmesh->cell[ix][iy][iz]);
 				oldc=&(oldmesh->cell[ix][iy][iz]);
 				newc=&(newmesh->cell[ix][iy][iz]);
-				oldc->epsilon=2.0*c->epsilon-newc->epsilon;
+				oldc->epsilonk=2.0*c->epsilonk-newc->epsilonk;
 				oldc->Pr=2.0*c->Pr-newc->Pr;
 				oldc->T=2.0*c->T-newc->T;
 				for(k=0;k<=NDIM;k++){
@@ -114,6 +117,7 @@ void CLandau::InterpolateOldMesh(){
 void CLandau::PropagateRhoBPdens(){ 
 	int ix,iy,iz,i;
 	CLandauCell *c,*oldc,*newc;
+	double DivKFlow;
 	vector<double> DeliTij(4);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
@@ -126,13 +130,13 @@ void CLandau::PropagateRhoBPdens(){
 				for(i=0;i<=NDIM;i++){
 					newc->Pdens[i]=oldc->Pdens[i]-2.0*DELT*DeliTij[i];
 				}
+				DivKFlow=c->CalcDivKFlow();
+				newc->Pdens[0]+=2.0*DELT*DivKFlow;
 			}
 		}
 	} 
 }
 
-
-//----------------------------------------------------------------
 void CLandau::PrintInfo(){
 	int ix,iy,iz;
 	CLandauCell *cnew,*cold,*ccurrent;
@@ -221,4 +225,23 @@ void CLandau::WriteData1D(){
 		fprintf(fptr,"%8.3e %10.4e\n",ix*DXYZ,currentmesh->cell[ix][iy][iz].jB[0]);
 	}
 	fclose(fptr);
+}
+
+void CLandau::AverageMeshes(double weight){
+	int ix,iy,iz,i;
+	CLandauCell *c,*newc,*oldc;
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				c=&(currentmesh->cell[ix][iy][iz]);
+				oldc=&(oldmesh->cell[ix][iy][iz]);
+				newc=&(newmesh->cell[ix][iy][iz]);
+				for(i=0;i<=NDIM;i++){
+					c->Pdens[i]=(1.0-weight)*c->Pdens[i]+0.5*weight*(oldc->Pdens[i]+newc->Pdens[i]);
+					c->jB[i]=(1.0-weight)*c->jB[i]+0.5*weight*(oldc->jB[i]+newc->jB[i]);
+				}
+			}
+		}
+	}	
+	currentmesh->CalculateUJMEpsilonSE();	
 }
