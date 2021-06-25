@@ -65,7 +65,7 @@ void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz;
 	int nx=1,ny=0,nz=0;
 	CLandauCell c0,*c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0=0.1,Arho=0.01;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0=0.0,Arho=0.01;
 	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
@@ -77,7 +77,8 @@ void CLandauMesh::Initialize(double tset){
 	c0.jB[0]=jB0;
 	eos->CalcEoS(&c0);
 	cs20=c0.cs2;
-	printf("Initializing: cs20=%g\n",cs20);
+	c0.PrintInfo();
+	exit(1);
 	omega0=kx*sqrt(cs20);
 	for(ix=0;ix<NX;ix++){
 		x=DXYZ*ix;
