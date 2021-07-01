@@ -65,7 +65,8 @@ void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz;
 	int nx=1,ny=0,nz=0;
 	CLandauCell c0,*c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0=0.0,Arho=0.01;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0,Arho=0.05;
+	epsilon0=landau->parmap->getD("LANDAU_EPSILON0",0.2);
 	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
@@ -78,8 +79,10 @@ void CLandauMesh::Initialize(double tset){
 	eos->CalcEoS(&c0);
 	cs20=c0.cs2;
 	c0.PrintInfo();
-	exit(1);
-	omega0=kx*sqrt(cs20);
+	if(cs20>0.0)
+		omega0=kx*sqrt(cs20);
+	else
+		omega0=kx*sqrt(-cs20);
 	for(ix=0;ix<NX;ix++){
 		x=DXYZ*ix;
 		for(iy=0;iy<NY;iy++){
@@ -88,8 +91,13 @@ void CLandauMesh::Initialize(double tset){
 				z=DXYZ*iz;
 				c=&cell[ix][iy][iz];
 				c->Zero();
-				c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*cos(omega0*t);
-				c->epsilonk=epsilon0*pow(c->jB[0]/jB0,-2.0/3.0);
+				if(cs20>0.0){
+					c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*cos(omega0*t);
+				}
+				else{
+					c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*exp(omega0*t);
+				}
+				c->epsilonk=epsilon0*pow(c->jB[0]/jB0,5.0/3.0);
 				c->Pdens[0]=c->epsilonk;
 				eos->CalcEoS(c);
 				c->Pdens[1]=c->Pdens[2]=c->Pdens[3]=0.0;
@@ -139,7 +147,7 @@ void CLandauMesh::WriteXSliceInfo(int iy,int iz){
 	//	printf("----------TIME=%g -------------\n",currentmesh->t);
 	for(ix=0;ix<NX;ix++){
 		c=&(cell[ix][iy][iz]);
-		fprintf(fptr,"%12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e\n",ix*DXYZ,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->T);
+		fprintf(fptr,"%12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e\n",ix*DXYZ,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T);
 		if(c->jB[0]>maxdens)
 			maxdens=c->jB[0];
 		if(c->jB[0]<mindens)
@@ -167,7 +175,8 @@ void CLandauMesh::CalculateBtotEtot(){
 			}
 		}
 	}
-	printf("t=%g, Btot=%g, Etot=%g, Stot=%g",t,Btot,Etot,Stot);
+	printf("_________________ Calculating Btot, Etot, Stot for t=%g.  _______________\n",t);
+	printf("Btot=%g, Etot=%g, Stot=%g",Btot,Etot,Stot);
 	for(i=1;i<=NDIM;i++)
 		printf(", Ptot[%d]=%g",i,Ptot[i]);
 	printf("\n");

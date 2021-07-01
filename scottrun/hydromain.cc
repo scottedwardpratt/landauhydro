@@ -1,22 +1,34 @@
 #include "landau.h"
 using namespace std;
 
-int main(){
+int main(int argc,char *argv[]){
+	string parsfilename;
+	if(argc !=2){
+		printf("Usage: hydro parsfilename\n");
+		exit(1);
+	}
+	else
+		parsfilename=argv[1];
 	int nprint,iprint=0,it;
+	double tprint=5.0;
 	CparameterMap parmap;
-	parmap.ReadParsFromFile("parameters.dat");
+	parmap.ReadParsFromFile(parsfilename);
 	CLandau landau(&parmap);
-	nprint=lrint(1.0/landau.DELT);
+	nprint=lrint(tprint/landau.DELT);
+	printf("nprint=%d\n",nprint);
 	landau.currentmesh->WriteXSliceInfo(0,0);
+	landau.oldmesh->CalculateBtotEtot();
+	landau.currentmesh->CalculateBtotEtot();
 	for(it=1;it<=landau.NT;it++){
 		landau.Propagate(); // Updates newmesh using currentmesh and oldmesh
 		iprint+=1;
+		landau.AverageMeshes(1.0);
+		landau.Propagate();
 		if(iprint==nprint){
 			landau.newmesh->WriteXSliceInfo(0,0);
 			landau.newmesh->CalculateBtotEtot();
 			iprint=0;
 		}
-		landau.AverageMeshes(1.0);
 		landau.CycleMeshes();
 	}
 	printf("Tlowest=%g, Thighest=%g\n",CLandauCell::Tlowest,CLandauCell::Thighest);
