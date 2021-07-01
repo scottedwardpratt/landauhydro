@@ -18,7 +18,7 @@ while os.path.isfile(filename):
 
 print('nframes=',nframes) 
 
-axis = plt.axes(xlim =(0, 100), ylim=(0,1))
+axis = plt.axes(xlim =(0, 200), ylim=(0,1))
 line, = axis.plot([],[],lw=2)
 def init():
   ttl.set_text('')
@@ -27,7 +27,7 @@ def init():
 
 ymin=0.0
 ymax=0.6
-axis1 = plt.axes(xlim =(0, 100), ylim=(ymin,ymax))
+axis1 = plt.axes(xlim =(0, 200), ylim=(ymin,ymax))
 line1, = axis1.plot([],[],lw=2)
 ttl=axis1.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makedensity(i):
@@ -48,7 +48,7 @@ del anim1
 
 ymin=0.0
 ymax=0.3
-axis2 = plt.axes(xlim =(0, 100),ylim=(ymin,ymax))
+axis2 = plt.axes(xlim =(0, 200),ylim=(ymin,ymax))
 line2, = axis2.plot([],[],lw=2)
 ttl=axis2.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makeT(i):
@@ -69,7 +69,7 @@ del anim2
 
 ymin=-0.015
 ymax=0.015
-axis3 = plt.axes(xlim =(0, 100),ylim=(ymin,ymax))
+axis3 = plt.axes(xlim =(0, 200),ylim=(ymin,ymax))
 line3, = axis3.plot([],[],lw=2)
 ttl=axis3.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makeP(i):
@@ -90,7 +90,7 @@ del anim3
 
 ymin=-0.015
 ymax=0.05
-axis4 = plt.axes(xlim =(0, 100),ylim=(ymin,ymax))
+axis4 = plt.axes(xlim =(0, 200),ylim=(ymin,ymax))
 line4, = axis4.plot([],[],lw=2)
 ttl=axis4.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makeTxx(i):
