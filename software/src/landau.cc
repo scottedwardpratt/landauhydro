@@ -13,6 +13,7 @@ CLandau::CLandau(CparameterMap *parmapset){
 	NZ=parmap->getI("LANDAU_NZ",100);
 	//NT=parmap->getI("LANDAU_NT",1000);
 	DELT=parmap->getD("LANDAU_DELT",0.01);
+	printf("DELT=%g\n",DELT);
 	TMAX=parmap->getD("LANDAU_TMAX",1000.0);
 	NT=lrint(TMAX/DELT);
 	printf("NT=%d\n",NT);
@@ -114,7 +115,7 @@ void CLandau::InterpolateOldMesh(){
 }
 
 //-----------------------------------------------------------------
-void CLandau::PropagateRhoBPdens(){ 
+void CLandau::PropagateRhoBPdens(){
 	int ix,iy,iz,i;
 	CLandauCell *c,*oldc,*newc;
 	double DivKFlow;
@@ -126,15 +127,27 @@ void CLandau::PropagateRhoBPdens(){
 				oldc=&(oldmesh->cell[ix][iy][iz]);
 				newc=&(newmesh->cell[ix][iy][iz]);
 				newc->jB[0]=oldc->jB[0]-2.0*DELT*c->DelDotJB();
+				if(newc->jB[0]<0.0 || newc->jB[0]!=newc->jB[0]){
+					printf("negative or ill-defined density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
+					newc->jB[0],newmesh->t);
+					printf("A: oldc->jB[0]=%g, c->jB[0]=%g\n",oldc->jB[0],c->jB[0]);
+					exit(1);
+				}
 				c->CalcDeliTij(DeliTij);
 				for(i=0;i<=NDIM;i++){
 					newc->Pdens[i]=oldc->Pdens[i]-2.0*DELT*DeliTij[i];
+				}
+				if(newc->Pdens[1]!=newc->Pdens[1]){
+					printf("negative or ill-defined momentum density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
+					newc->Pdens[1],newmesh->t);
+					printf("B: oldc->Pdens[1]=%g, c->Pdens[0]=%g\n",oldc->Pdens[1],c->Pdens[1]);
+					exit(1);
 				}
 				DivKFlow=c->CalcDivKFlow();
 				newc->Pdens[0]+=2.0*DELT*DivKFlow;
 			}
 		}
-	} 
+	}
 }
 
 void CLandau::PrintInfo(){

@@ -48,7 +48,7 @@ double CLandauCell::Grad2RhoB(){
 	for(i=1;i<=NDIM;i++){
 		answer+=neighborPlus[i]->jB[0]+neighborMinus[i]->jB[0]-2.0*jB[0];
 	}
-	return answer/(2.0*DXYZ*DXYZ);
+	return answer/(DXYZ*DXYZ);
 }
 
 void CLandauCell::CalcGradRhoB(vector<double> &GradRhoB){
