@@ -115,10 +115,11 @@ void CLandau::InterpolateOldMesh(){
 }
 
 //-----------------------------------------------------------------
+
 void CLandau::PropagateRhoBPdens(){
-	int ix,iy,iz,i;
+	int ix,iy,iz,i,j;
 	CLandauCell *c,*oldc,*newc;
-	double DivKFlow;
+	double DivKFlow,vdotgradki;
 	vector<double> DeliTij(4);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
@@ -138,13 +139,21 @@ void CLandau::PropagateRhoBPdens(){
 					newc->Pdens[i]=oldc->Pdens[i]-2.0*DELT*DeliTij[i];
 				}
 				if(newc->Pdens[1]!=newc->Pdens[1]){
-					printf("negative or ill-defined momentum density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
+					printf("ill-defined momentum density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
 					newc->Pdens[1],newmesh->t);
 					printf("B: oldc->Pdens[1]=%g, c->Pdens[0]=%g\n",oldc->Pdens[1],c->Pdens[1]);
 					exit(1);
 				}
 				DivKFlow=c->CalcDivKFlow();
 				newc->Pdens[0]+=2.0*DELT*DivKFlow;
+				for(i=1;i<=NDIM;i++){
+					newc->kflow[i]=oldc->kflow[i]-(2.0*DELT/c->tau_K)*(c->kflow[i]-c->kflow_target[i]);
+					vdotgradki=0.0;
+					for(j=1;j<=NDIM;j++){
+						vdotgradki+=c->u[j]*(c->neighborPlus[j]->kflow[i]-c->neighborMinus[j]->kflow[i])/(2.0*DXYZ);
+					}
+					newc->kflow[i]-=vdotgradki*DELT;
+				}
 			}
 		}
 	}
@@ -252,6 +261,9 @@ void CLandau::AverageMeshes(double weight){
 				for(i=0;i<=NDIM;i++){
 					c->Pdens[i]=(1.0-weight)*c->Pdens[i]+0.5*weight*(oldc->Pdens[i]+newc->Pdens[i]);
 					c->jB[i]=(1.0-weight)*c->jB[i]+0.5*weight*(oldc->jB[i]+newc->jB[i]);
+				}
+				for(i=1;i<=NDIM;i++){
+					c->kflow[i]=(1.0-weight)*c->kflow[i]+0.5*weight*(oldc->kflow[i]+newc->kflow[i]);
 				}
 			}
 		}

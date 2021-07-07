@@ -71,9 +71,9 @@ public:
 	vector<double> M; // M is T_0i in restframe (only due to kappa)
 	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
 	vector<vector<double>> SE;  // in lab frame (includes KE...)
-	double epsilonk,Pr,T,SoverB,cs2,K;
+	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K;
 	vector<double> jB;
-	vector<double>Kflow;
+	vector<double>kflow_target,kflow;
 	vector<CLandauCell *> neighborPlus,neighborMinus;
 	static double DXYZ;
 	static int NDIM;
@@ -91,7 +91,7 @@ public:
 	void CalcGradRhoB(vector<double> &GradRhoB);
 	void CalcDeliTij(vector<double> &DeliTij);
 	double CalcDivKFlow();
-	void CalcKFlow();
+	void Calckflow_target();
 
 	void PrintInfo();
 	void Zero();
