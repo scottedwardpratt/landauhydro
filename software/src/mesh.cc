@@ -62,10 +62,10 @@ CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
 }
 
 void CLandauMesh::Initialize(double tset){
-	int ix,iy,iz;
+	int ix,iy,iz,i;
 	int nx=1,ny=0,nz=0;
 	CLandauCell c0,*c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0,Arho=0.05;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0,Arho=0.01;
 	epsilon0=landau->parmap->getD("LANDAU_EPSILON0",0.2);
 	t=tset;
 	Lx=NX*DXYZ;
@@ -100,12 +100,18 @@ void CLandauMesh::Initialize(double tset){
 				c->epsilonk=epsilon0*pow(c->jB[0]/jB0,5.0/3.0);
 				c->Pdens[0]=c->epsilonk;
 				eos->CalcEoS(c);
+				printf("Initializing, T=%12.10f\n",c->T);
 				c->Pdens[1]=c->Pdens[2]=c->Pdens[3]=0.0;
-				/*
-				c->Pdens[1]=((eos->mass*cs20*kx*Arho)/(omega0))*sin(kx*x)*cos(ky*y)*cos(kz*z)*sin(omega0*t);
-				c->Pdens[2]=((eos->mass*cs20*ky*Arho)/(omega0))*cos(kx*x)*sin(ky*y)*cos(kz*z)*sin(omega0*t);
-				c->Pdens[3]=((eos->mass*cs20*kz*Arho)/(omega0))*cos(kx*x)*cos(ky*y)*sin(kz*z)*sin(omega0*t);
-				*/
+			}
+		}
+	}
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				c=&cell[ix][iy][iz];
+				for(i=1;i<=NDIM;i++){
+					c->kflow[i]=c->kflow_target[i];
+				}
 			}
 		}
 	}
@@ -229,7 +235,7 @@ void CLandauMesh::CalculateUJMEpsilonSE(){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
 				c=&cell[ix][iy][iz];
-				c->CalcKFlow();
+				c->Calckflow_target();
 			}
 		}
 	}

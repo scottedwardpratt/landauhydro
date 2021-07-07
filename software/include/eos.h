@@ -22,7 +22,7 @@ public:
 	static double kappa,mass,Kfactor;
 	virtual void CalcEoS(CLandauCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->rhoB
 		// gives quantities in terms of epsilon and rhoB
-		cell->T=cell->Pr=cell->SoverB=cell->cs2=cell->K=0.0;
+		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;
 	}
 };
 

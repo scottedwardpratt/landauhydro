@@ -13,7 +13,8 @@ CLandauCell::CLandauCell(){
 	M.resize(NDIM+1);
 	jB.resize(NDIM+1);
 	SE.resize(NDIM+1);
-	Kflow.resize(NDIM+1);
+	kflow.resize(NDIM+1);
+	kflow_target.resize(NDIM+1);
 	neighborMinus.resize(NDIM+1);
 	neighborPlus.resize(NDIM+1);
 	for(i=0;i<=NDIM;i++){
@@ -27,7 +28,7 @@ CLandauCell::CLandauCell(){
 
 void CLandauCell::Zero(){
 	int i,j;
-	epsilonk=Pr=0.0;
+	epsilonk=Pr=tau_K=0.0;
 	for(i=0;i<=NDIM;i++){
 		u[i]=M[i]=jB[i]=Pdens[i]=0.0;
 		for(j=0;j<=NDIM;j++){
@@ -38,8 +39,8 @@ void CLandauCell::Zero(){
 
 void CLandauCell::PrintInfo(){
 	printf("jB=(%g,%g,%g,%g), epsilonk=%g\n",jB[0],jB[1],jB[2],jB[3],epsilonk);
-	printf("u=(%g,%g,%g), T=%g, Pr=%g, cs2=%g, SoverB=%g, Kflow=(%g,%g,%g)\n",
-	u[1],u[2],u[3],T,Pr,cs2,SoverB,Kflow[1],Kflow[2],Kflow[3]);
+	printf("u=(%g,%g,%g), T=%g, Pr=%g, cs2=%g, SoverB=%g, kflow=(%g,%g,%g)\n",
+	u[1],u[2],u[3],T,Pr,cs2,SoverB,kflow[1],kflow[2],kflow[3]);
 }
 
 double CLandauCell::Grad2RhoB(){
@@ -77,18 +78,25 @@ double CLandauCell::DelDotU(){
 	return answer/(2.0*DXYZ);
 }
 
-void CLandauCell::CalcKFlow(){
+void CLandauCell::Calckflow_target(){
 	int i;
+	double Kflow_target;
 	for(i=1;i<=NDIM;i++){
-		Kflow[i]=CEoS::Kfactor*sqrt(T/CEoS::mass)*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
+		Kflow_target=CEoS::Kfactor*(35.0/4.0)*(T/CEoS::mass)*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);	
+		kflow_target[i]=Kflow_target/(sigma_K*jB[0]);
 	}
 }
 
 double CLandauCell::CalcDivKFlow(){
 	int i;
-	double DivKFlow=0.0;
+	double DivKFlow=0.0,Kplus,Kminus;
+	CLandauCell *neighbor;
 	for(i=1;i<=NDIM;i++){
-		DivKFlow+=(neighborPlus[i]->Kflow[i]-neighborMinus[i]->Kflow[i]);
+		neighbor=neighborPlus[i];
+		Kplus=neighbor->kflow[i]*neighbor->sigma_K*neighbor->jB[0];
+		neighbor=neighborMinus[i];
+		Kminus=neighbor->kflow[i]*neighbor->sigma_K*neighbor->jB[0];
+		DivKFlow+=(Kplus-Kminus);
 	}
 	return DivKFlow/(2.0*DXYZ);
 }

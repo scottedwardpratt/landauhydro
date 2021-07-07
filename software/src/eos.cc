@@ -28,7 +28,7 @@ CEoS_VdW::CEoS_VdW(CparameterMap *parmapset){
 
 void CEoS_FreeGas::CalcEoS(CLandauCell *cell){
 	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
-	double T,Pr,SoverB,cs2,K;
+	double T,Pr,SoverB,cs2,K,tau_K;
 	Pr=epsilonk/1.5;
 	T=Pr/rhoB;
 	if(T<0.0){
@@ -41,17 +41,19 @@ void CEoS_FreeGas::CalcEoS(CLandauCell *cell){
 	}
 	SoverB=log(pow(T,1.5)/rhoB);
 	cs2=(5.0/3.0)*T/mass;
-	K=Kfactor*sqrt(T/mass);
+	tau_K=2.0/rhoB;
+	K=Kfactor*(35.0*T/(4.0*mass))*rhoB*tau_K;
 	cell->T=T;
 	cell->Pr=Pr;
 	cell->SoverB=SoverB;
 	cell->cs2=cs2;
-	cell->K=K;
+	cell->tau_K=tau_K;
+	cell->sigma_K=sqrt(K*T*T/tau_K);
 }
 
 void CEoS_VdW::CalcEoS(CLandauCell *cell){
 	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
-	double T,Pr,SoverB,cs2,K;
+	double T,Pr,SoverB,cs2,K,tau_K;
 	T=2.0*(epsilonk+a*rhoB*rhoB)/(3.0*rhoB);
 	if(T<0.0){
 		printf("in VdW CalcEoS, T<0!! =%g\n",T);
@@ -64,10 +66,12 @@ void CEoS_VdW::CalcEoS(CLandauCell *cell){
 	Pr=rhoB*T/(1.0-rhoB/rho0)-a*rhoB*rhoB;
 	SoverB=1.5*log(T)+log((rho0/rhoB)-1.0);
 	cs2=((5.0*T/3.0)/((1.0-rhoB/rho0)*(1.0-rhoB/rho0))-2.0*a*rhoB)/mass;
-	K=Kfactor*sqrt(T/mass);
+	tau_K=2.0/rhoB;
+	K=Kfactor*(35.0*T/(4.0*mass))*rhoB*tau_K;
 	cell->T=T;
 	cell->Pr=Pr;
 	cell->SoverB=SoverB;
 	cell->cs2=cs2;
-	cell->K=K;
+	cell->tau_K=tau_K;
+	cell->sigma_K=sqrt(K*T*T/tau_K);
 }
