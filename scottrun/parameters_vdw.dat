@@ -5,7 +5,6 @@ double LANDAU_TMAX 1500.0
 int LANDAU_NRUNGEKUTTA 2
 int LANDAU_EPSILON0 0.05
 string LANDAU_EOS VdW
-#string LANDAU_EOS FreeGas
 double LANDAU_DXYZ 0.5
 double LANDAU_DELT 0.05
 double LANDAU_T0 0.0
@@ -14,3 +13,4 @@ double EOS_MASS 1.0
 double EOS_VDW_A 1.0
 double EOS_VDW_RHO0 1.0
 double EOS_KFACTOR 0.2
+double EOS_ETAFACTOR 1.0

@@ -13,14 +13,20 @@ CLandauCell::CLandauCell(){
 	M.resize(NDIM+1);
 	jB.resize(NDIM+1);
 	SE.resize(NDIM+1);
+	pivisc.resize(NDIM+1);
+	pitarget.resize(NDIM+1);
 	kflow.resize(NDIM+1);
 	kflow_target.resize(NDIM+1);
 	neighborMinus.resize(NDIM+1);
 	neighborPlus.resize(NDIM+1);
 	for(i=0;i<=NDIM;i++){
+		Pdens[i]=0.0;
 		SE[i].resize(NDIM+1);
+		pitarget[i].resize(NDIM+1);
+		pivisc[i].resize(NDIM+1);
 		for(j=0;j<=NDIM;j++){
 			SE[i][j]=0.0;
+			pivisc[i][j]=0.0;
 		}
 	}
 	Zero();
@@ -41,6 +47,7 @@ void CLandauCell::PrintInfo(){
 	printf("jB=(%g,%g,%g,%g), epsilonk=%g\n",jB[0],jB[1],jB[2],jB[3],epsilonk);
 	printf("u=(%g,%g,%g), T=%g, Pr=%g, cs2=%g, SoverB=%g, kflow=(%g,%g,%g)\n",
 	u[1],u[2],u[3],T,Pr,cs2,SoverB,kflow[1],kflow[2],kflow[3]);
+	printf("Pdens=(%g,%g,%g,%g)\n",Pdens[0],Pdens[1],Pdens[2],Pdens[3]);
 }
 
 double CLandauCell::Grad2RhoB(){
@@ -82,8 +89,24 @@ void CLandauCell::Calckflow_target(){
 	int i;
 	double Kflow_target;
 	for(i=1;i<=NDIM;i++){
-		Kflow_target=CEoS::Kfactor*(35.0/4.0)*(T/CEoS::mass)*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);	
+		Kflow_target=K*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
 		kflow_target[i]=Kflow_target/(sigma_K*jB[0]);
+	}
+}
+
+void CLandauCell::Calcpi_target(){
+	int i,j;
+	CalcOmega(pitarget);
+	for(i=1;i<=NDIM;i++){
+		for(j=1;j<=NDIM;j++){
+			if(i==j){
+				pitarget[i][j]*=-eta;
+				if(pitarget[i][j]!=pitarget[i][j]){
+					printf("pitarget[%d][%d]=%g\n",i,j,pitarget[i][j]);
+					exit(1);
+				}
+			}
+		}
 	}
 }
 
@@ -153,7 +176,8 @@ void CLandauCell::CalcEpsilonSE(){
 	
 	for(i=1;i<=NDIM;i++){
 		for(j=1;j<=NDIM;j++){
-			SE[i][j]=eos->kappa*gradrhoB[i]*gradrhoB[j];
+			SE[i][j]=pivisc[i][j];
+			SE[i][j]+=eos->kappa*gradrhoB[i]*gradrhoB[j];
 			if(i==j)
 				SE[i][j]+=Pr-eos->kappa*(jB[0]*grad2rhoB+0.5*gradrhoB2);
 			SE[i][j]+=mass*jB[0]*u[i]*u[j];
@@ -165,5 +189,33 @@ void CLandauCell::CalcEpsilonSE(){
 			SE[0][i]+=SE[i][j]*u[j];
 		}
 		SE[i][0]=SE[0][i];
-	}	
+	}
+	for(i=1;i<=NDIM;i++){
+		for(j=1;j<=NDIM;j++){
+			if(SE[i][j]!=SE[i][j]){
+				printf("SE[%d][%d]=%g\n",i,j,SE[i][j]);
+				exit(1);
+			}
+		}
+	}
+}
+
+void CLandauCell::CalcOmega(vector<vector<double>> &omega){
+	int i,j;
+	double deldotv=DelDotU();
+	for(i=1;i<=NDIM;i++){
+		for(j=1;j<=NDIM;j++){
+			omega[i][j]=(neighborPlus[j]->u[i]-neighborMinus[j]->u[i])/(2.0*DXYZ);
+		}
+	}
+	for(i=1;i<=NDIM;i++){
+		for(j=i;j<=NDIM;j++){
+			omega[i][j]=omega[i][j]+omega[j][i];
+			if(i!=j)
+				omega[j][i]=omega[i][j];
+			else{
+				omega[i][j]-=(2.0/3.0)*deldotv;
+			}
+		}
+	}
 }

@@ -85,7 +85,7 @@ void CLandau::CycleMeshes(){
 
 void CLandau::Propagate(){
 	PropagateRhoBPdens();
-	newmesh->CalculateUJMEpsilonSE();
+	newmesh->UpdateQuantities();
 	newmesh->t=currentmesh->t+DELT;
 }
 
@@ -117,9 +117,9 @@ void CLandau::InterpolateOldMesh(){
 //-----------------------------------------------------------------
 
 void CLandau::PropagateRhoBPdens(){
-	int ix,iy,iz,i,j;
+	int ix,iy,iz,i,j,k;
 	CLandauCell *c,*oldc,*newc;
-	double DivKFlow,vdotgradki;
+	double DivKFlow,vdotgradki,vdotgradpiij;
 	vector<double> DeliTij(4);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
@@ -129,9 +129,10 @@ void CLandau::PropagateRhoBPdens(){
 				newc=&(newmesh->cell[ix][iy][iz]);
 				newc->jB[0]=oldc->jB[0]-2.0*DELT*c->DelDotJB();
 				if(newc->jB[0]<0.0 || newc->jB[0]!=newc->jB[0]){
-					printf("negative or ill-defined density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
+					printf("negative or ill-defined density in CLandau::PropagateRhoBPdens(), rho=%g, t=%g\n",
 					newc->jB[0],newmesh->t);
 					printf("A: oldc->jB[0]=%g, c->jB[0]=%g\n",oldc->jB[0],c->jB[0]);
+					newc->PrintInfo();
 					exit(1);
 				}
 				c->CalcDeliTij(DeliTij);
@@ -141,7 +142,8 @@ void CLandau::PropagateRhoBPdens(){
 				if(newc->Pdens[1]!=newc->Pdens[1]){
 					printf("ill-defined momentum density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
 					newc->Pdens[1],newmesh->t);
-					printf("B: oldc->Pdens[1]=%g, c->Pdens[0]=%g\n",oldc->Pdens[1],c->Pdens[1]);
+					printf("B: oldc->Pdens[1]=%g, c->Pdens[1]=%g\n",oldc->Pdens[1],c->Pdens[1]);
+					newc->PrintInfo();
 					exit(1);
 				}
 				DivKFlow=c->CalcDivKFlow();
@@ -151,6 +153,12 @@ void CLandau::PropagateRhoBPdens(){
 					vdotgradki=0.0;
 					for(j=1;j<=NDIM;j++){
 						vdotgradki+=c->u[j]*(c->neighborPlus[j]->kflow[i]-c->neighborMinus[j]->kflow[i])/(2.0*DXYZ);
+						newc->pivisc[i][j]=oldc->pivisc[i][j]-(2.0*DELT/c->tau_eta)*(c->pivisc[i][j]-c->pitarget[i][j]);
+						vdotgradpiij=0.0;
+						for(k=1;k<=NDIM;k++){
+							vdotgradpiij+=c->u[k]*(c->neighborPlus[k]->pivisc[i][j]-c->neighborMinus[k]->pivisc[i][j])/(2.0*DXYZ);
+						}
+						newc->pivisc[i][j]-=vdotgradpiij*DELT;
 					}
 					newc->kflow[i]-=vdotgradki*DELT;
 				}
@@ -268,5 +276,5 @@ void CLandau::AverageMeshes(double weight){
 			}
 		}
 	}	
-	currentmesh->CalculateUJMEpsilonSE();	
+	currentmesh->UpdateQuantities();	
 }

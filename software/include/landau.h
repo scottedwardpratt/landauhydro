@@ -58,7 +58,7 @@ public:
 	void WriteInfo();
 	void WriteXSliceInfo(int iy,int iz);
 	void PrintInfo();
-	void CalculateUJMEpsilonSE();
+	void UpdateQuantities();
 	void CalculateBtotEtot();
 };
 
@@ -70,8 +70,10 @@ public:
 	vector<double> u;  // velocity
 	vector<double> M; // M is T_0i in restframe (only due to kappa)
 	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
+	vector<vector<double>> pitarget,pivisc;
 	vector<vector<double>> SE;  // in lab frame (includes KE...)
-	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K;
+	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K,K;
+	double eta,zeta,sigma_eta,tau_eta,sigma_zeta,tau_zeta;
 	vector<double> jB;
 	vector<double>kflow_target,kflow;
 	vector<CLandauCell *> neighborPlus,neighborMinus;
@@ -91,7 +93,9 @@ public:
 	void CalcGradRhoB(vector<double> &GradRhoB);
 	void CalcDeliTij(vector<double> &DeliTij);
 	double CalcDivKFlow();
+	void CalcOmega(vector<vector<double>> &omega);
 	void Calckflow_target();
+	void Calcpi_target();
 
 	void PrintInfo();
 	void Zero();

@@ -19,13 +19,13 @@ public:
 	CparameterMap *parmap;
 	CEoS(){};
 	CEoS(CparameterMap *parmapin);
-	static double kappa,mass,Kfactor;
+	static double kappa,mass,Kfactor,Etafactor,Zetafactor;
 	virtual void CalcEoS_of_rho_epsilon(CLandauCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->rhoB
 		// gives quantities in terms of epsilon and rhoB
 		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;
 	}
 	virtual void CalcEoS_of_rho_T(CLandauCell *cell){
-		cell->epsilonk=cell->Pr=cell->SoverB=cell->cs2=0.0;
+		cell->epsilonk=cell->Pr=cell->SoverB=cell->cs2=cell->eta=cell->zeta=0.0;
 	}
 };
 

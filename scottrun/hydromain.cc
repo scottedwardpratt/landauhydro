@@ -15,7 +15,6 @@ int main(int argc,char *argv[]){
 	parmap.ReadParsFromFile(parsfilename);
 	CLandau landau(&parmap);
 	nprint=lrint(tprint/landau.DELT);
-	printf("nprint=%d\n",nprint);
 	landau.currentmesh->WriteXSliceInfo(0,0);
 	landau.oldmesh->CalculateBtotEtot();
 	landau.currentmesh->CalculateBtotEtot();
@@ -36,7 +35,7 @@ int main(int argc,char *argv[]){
 		}
 		landau.CycleMeshes();
 	}
-	printf("Tlowest=%g, Thighest=%g\n",CLandauCell::Tlowest,CLandauCell::Thighest);
+	//printf("Tlowest=%g, Thighest=%g\n",CLandauCell::Tlowest,CLandauCell::Thighest);
 	//landau.currentmesh->PrintInfo();
 //----------------------------------------------------------------------------------
 //        CLandau rect(10.0);

@@ -62,7 +62,7 @@ CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
 }
 
 void CLandauMesh::Initialize(double tset){
-	int ix,iy,iz,i;
+	int ix,iy,iz,i,j;
 	int nx=1,ny=0,nz=0;
 	CLandauCell c0,*c;
 	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.3,epsilon0,Arho=0.01,T0=0.2,grad2rhoB;
@@ -77,7 +77,7 @@ void CLandauMesh::Initialize(double tset){
 	c0.epsilonk=epsilon0;
 	c0.jB[0]=jB0;
 	eos->CalcEoS_of_rho_epsilon(&c0);
-	c0.PrintInfo();
+	//c0.PrintInfo();
 	for(ix=0;ix<NX;ix++){
 		x=DXYZ*(ix+0.5);
 		for(iy=0;iy<NY;iy++){
@@ -101,22 +101,25 @@ void CLandauMesh::Initialize(double tset){
 				
 				c->Pdens[0]=c->epsilonk-0.5*eos->kappa*c->jB[0]*grad2rhoB;
 				c->Pdens[1]=c->Pdens[2]=c->Pdens[3]=0.0;
-				printf("ix=%3d, Pdens[0]=%g, epsilonk=%g, rhoB=%g, grad2rhoB=%g\n",ix,c->Pdens[0],c->epsilonk,c->jB[0],grad2rhoB);
+				//printf("ix=%3d, Pdens[0]=%g, epsilonk=%g, rhoB=%g, grad2rhoB=%g\n",ix,c->Pdens[0],c->epsilonk,c->jB[0],grad2rhoB);
 			}
 		}
 	}
+	UpdateQuantities();
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
 				c=&cell[ix][iy][iz];
 				for(i=1;i<=NDIM;i++){
 					c->kflow[i]=c->kflow_target[i];
+					for(j=1;j<=NDIM;j++){
+						c->pivisc[i][j]=c->pitarget[i][j];
+					}
 				}
 			}
 		}
 	}
-	CalculateUJMEpsilonSE();
-	CalculateBtotEtot();
+	//CalculateBtotEtot();
 	printf("Initialization finished for t=%g\n",t);
 }
 
@@ -209,7 +212,7 @@ void CLandauMesh::PrintInfo(){
 	}
 }
 
-void CLandauMesh::CalculateUJMEpsilonSE(){
+void CLandauMesh::UpdateQuantities(){
 	int ix,iy,iz,i;
 	CLandauCell *c;
 	for(ix=0;ix<NX;ix++){
@@ -237,6 +240,7 @@ void CLandauMesh::CalculateUJMEpsilonSE(){
 			for(iz=0;iz<NZ;iz++){
 				c=&cell[ix][iy][iz];
 				c->Calckflow_target();
+				c->Calcpi_target();
 			}
 		}
 	}
