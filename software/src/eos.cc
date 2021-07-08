@@ -75,6 +75,7 @@ void CEoS_VdW::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	T=2.0*(epsilonk+a*rhoB*rhoB)/(3.0*rhoB);
 	if(T<0.0){
 		printf("in VdW CalcEoS, T<0!! =%g\n",T);
+		printf("epsilonk=%g, rhoB=%g\n",epsilonk,rhoB);
 		exit(1);
 	}
 	if(rhoB<0.0){

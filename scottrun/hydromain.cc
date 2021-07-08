@@ -9,7 +9,7 @@ int main(int argc,char *argv[]){
 	}
 	else
 		parsfilename=argv[1];
-	int nprint,iprint=0,it;
+	int nprint,iprint=0,it,ismooth,nsmooth;
 	double tprint=5.0;
 	CparameterMap parmap;
 	parmap.ReadParsFromFile(parsfilename);
@@ -22,8 +22,13 @@ int main(int argc,char *argv[]){
 	for(it=1;it<=landau.NT;it++){
 		landau.Propagate(); // Updates newmesh using currentmesh and oldmesh
 		iprint+=1;
-		landau.AverageMeshes(1.0);
-		landau.Propagate();
+		nsmooth=1;
+		if(it==1)
+			nsmooth=5;
+		for(ismooth=0;ismooth<nsmooth;ismooth++){
+			landau.AverageMeshes(0.5);
+			landau.Propagate();
+		}
 		if(iprint==nprint){
 			landau.newmesh->WriteXSliceInfo(0,0);
 			landau.newmesh->CalculateBtotEtot();

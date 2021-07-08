@@ -65,7 +65,7 @@ void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz,i;
 	int nx=1,ny=0,nz=0;
 	CLandauCell c0,*c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,cs20,omega0,epsilon0,Arho=0.01;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.3,epsilon0,Arho=0.01,T0=0.2,grad2rhoB;
 	epsilon0=landau->parmap->getD("LANDAU_EPSILON0",0.2);
 	t=tset;
 	Lx=NX*DXYZ;
@@ -77,31 +77,31 @@ void CLandauMesh::Initialize(double tset){
 	c0.epsilonk=epsilon0;
 	c0.jB[0]=jB0;
 	eos->CalcEoS_of_rho_epsilon(&c0);
-	cs20=c0.cs2;
 	c0.PrintInfo();
-	if(cs20>0.0)
-		omega0=kx*sqrt(cs20);
-	else
-		omega0=kx*sqrt(-cs20);
 	for(ix=0;ix<NX;ix++){
-		x=DXYZ*ix;
+		x=DXYZ*(ix+0.5);
 		for(iy=0;iy<NY;iy++){
-			y=DXYZ*iy;
+			y=DXYZ*(iy+0.5);
 			for(iz=0;iz<NZ;iz++){
-				z=DXYZ*iz;
+				z=DXYZ*(iz+0.5);
 				c=&cell[ix][iy][iz];
 				c->Zero();
-				if(cs20>0.0){
-					c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*cos(omega0*t);
-				}
-				else{
-					c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*exp(omega0*t);
-				}
-				c->T=0.2;
+				c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z);
+				grad2rhoB=-(kx*kx+ky*ky+kz*kz)*Arho*cos(kx*x)*cos(ky*y)*cos(kz*z);
+				/*
+				double a=0.25*Lx;
+				double w=10,arg1,arg2;
+				arg1=(x-0.5*Lx-a)/w;
+				arg2=(x-0.5*Lx+a)/w;
+				c->jB[0]=jB0+Arho*jB0*tanh(arg1)-Arho*jB0*tanh(arg2);
+				grad2rhoB=-2.0*pow(A*jB0/w,2)*(pow(cosh(arg1),-3)*sinh(arg1)-pow(cosh(arg2),-3)*sinh(arg2));
+				*/
+				c->T=T0;
 				eos->CalcEoS_of_rho_T(c);
-				c->Pdens[0]=c->epsilonk;
+				
+				c->Pdens[0]=c->epsilonk-0.5*eos->kappa*c->jB[0]*grad2rhoB;
 				c->Pdens[1]=c->Pdens[2]=c->Pdens[3]=0.0;
-				printf("Initializing, T=%12.10f\n",c->T);
+				printf("ix=%3d, Pdens[0]=%g, epsilonk=%g, rhoB=%g, grad2rhoB=%g\n",ix,c->Pdens[0],c->epsilonk,c->jB[0],grad2rhoB);
 			}
 		}
 	}
@@ -117,6 +117,7 @@ void CLandauMesh::Initialize(double tset){
 	}
 	CalculateUJMEpsilonSE();
 	CalculateBtotEtot();
+	printf("Initialization finished for t=%g\n",t);
 }
 
 void CLandauMesh::WriteInfo(){

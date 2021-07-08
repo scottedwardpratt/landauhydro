@@ -26,7 +26,7 @@ def init():
   return line,
 
 ymin=0.0
-ymax=0.6
+ymax=0.7
 axis1 = plt.axes(xlim =(0, Lmax), ylim=(ymin,ymax))
 line1, = axis1.plot([],[],lw=2)
 ttl=axis1.text(40,0.9*ymax+0.1*ymin,'',size='20')
