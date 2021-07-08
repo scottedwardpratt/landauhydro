@@ -76,7 +76,7 @@ void CLandauMesh::Initialize(double tset){
 	kz=2.0*PI*nz/Lz;
 	c0.epsilonk=epsilon0;
 	c0.jB[0]=jB0;
-	eos->CalcEoS(&c0);
+	eos->CalcEoS_of_rho_epsilon(&c0);
 	cs20=c0.cs2;
 	c0.PrintInfo();
 	if(cs20>0.0)
@@ -97,11 +97,11 @@ void CLandauMesh::Initialize(double tset){
 				else{
 					c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z)*exp(omega0*t);
 				}
-				c->epsilonk=epsilon0*pow(c->jB[0]/jB0,5.0/3.0);
+				c->T=0.2;
+				eos->CalcEoS_of_rho_T(c);
 				c->Pdens[0]=c->epsilonk;
-				eos->CalcEoS(c);
-				printf("Initializing, T=%12.10f\n",c->T);
 				c->Pdens[1]=c->Pdens[2]=c->Pdens[3]=0.0;
+				printf("Initializing, T=%12.10f\n",c->T);
 			}
 		}
 	}

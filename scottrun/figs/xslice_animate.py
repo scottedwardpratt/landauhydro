@@ -67,8 +67,8 @@ anim2=animation.FuncAnimation(fig, makeT, init_func = init, frames = nframes, in
 anim2.save('T.png',writer='Pillow',fps=15)
 del anim2
 
-ymin=-0.025
-ymax=0.025
+ymin=-0.035
+ymax=0.035
 axis3 = plt.axes(xlim =(0, Lmax),ylim=(ymin,ymax))
 line3, = axis3.plot([],[],lw=2)
 ttl=axis3.text(40,0.9*ymax+0.1*ymin,'',size='20')

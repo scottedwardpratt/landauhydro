@@ -139,7 +139,7 @@ void CLandauCell::CalcEpsilonSE(){
 		gradrhoB2+=gradrhoB[i]*gradrhoB[i];
 	}
 	epsilonk=epsilon+0.5*eos->kappa*jB[0]*grad2rhoB;
-	eos->CalcEoS(this);
+	eos->CalcEoS_of_rho_epsilon(this);
 	if(T<Tlowest){
 		Tlowest=T;
 		if(Tlowest<0.0){
