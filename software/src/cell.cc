@@ -100,7 +100,8 @@ void CLandauCell::Calcpi_target(){
 	for(i=1;i<=NDIM;i++){
 		for(j=1;j<=NDIM;j++){
 			if(i==j){
-				pitarget[i][j]*=-eta;
+				pitarget[i][j]*=-eta/(sigma_eta*jB[0]);
+				//printf("eta=%g, sigma_eta=%g, pitarget=%g\n",eta,sigma_eta,pitarget[i][j]);
 				if(pitarget[i][j]!=pitarget[i][j]){
 					printf("pitarget[%d][%d]=%g\n",i,j,pitarget[i][j]);
 					exit(1);
@@ -173,10 +174,10 @@ void CLandauCell::CalcEpsilonSE(){
 	if(T>Thighest){
 		Thighest=T;
 	}
-	
+	//Calcpi_target();
 	for(i=1;i<=NDIM;i++){
 		for(j=1;j<=NDIM;j++){
-			SE[i][j]=pivisc[i][j];
+			SE[i][j]=pivisc[i][j]*(sigma_eta*jB[0]);
 			SE[i][j]+=eos->kappa*gradrhoB[i]*gradrhoB[j];
 			if(i==j)
 				SE[i][j]+=Pr-eos->kappa*(jB[0]*grad2rhoB+0.5*gradrhoB2);

@@ -64,9 +64,11 @@ CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
 void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz,i,j;
 	int nx=1,ny=0,nz=0;
-	CLandauCell c0,*c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.3,epsilon0,Arho=0.01,T0=0.2,grad2rhoB;
-	epsilon0=landau->parmap->getD("LANDAU_EPSILON0",0.2);
+	CLandauCell *c;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,Drho,T0,grad2rhoB;
+	T0=landau->parmap->getD("LANDAU_INIT_TEMP",0.15);
+	jB0=landau->parmap->getD("LANDAU_INIT_RHO",0.25);
+	Drho=landau->parmap->getD("LANDAU_INIT_DRHO",0.01);
 	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
@@ -74,10 +76,6 @@ void CLandauMesh::Initialize(double tset){
 	kx=2.0*PI*nx/Lx;
 	ky=2.0*PI*ny/Ly;
 	kz=2.0*PI*nz/Lz;
-	c0.epsilonk=epsilon0;
-	c0.jB[0]=jB0;
-	eos->CalcEoS_of_rho_epsilon(&c0);
-	//c0.PrintInfo();
 	for(ix=0;ix<NX;ix++){
 		x=DXYZ*(ix+0.5);
 		for(iy=0;iy<NY;iy++){
@@ -86,16 +84,8 @@ void CLandauMesh::Initialize(double tset){
 				z=DXYZ*(iz+0.5);
 				c=&cell[ix][iy][iz];
 				c->Zero();
-				c->jB[0]=jB0+Arho*cos(kx*x)*cos(ky*y)*cos(kz*z);
-				grad2rhoB=-(kx*kx+ky*ky+kz*kz)*Arho*cos(kx*x)*cos(ky*y)*cos(kz*z);
-				/*
-				double a=0.25*Lx;
-				double w=10,arg1,arg2;
-				arg1=(x-0.5*Lx-a)/w;
-				arg2=(x-0.5*Lx+a)/w;
-				c->jB[0]=jB0+Arho*jB0*tanh(arg1)-Arho*jB0*tanh(arg2);
-				grad2rhoB=-2.0*pow(A*jB0/w,2)*(pow(cosh(arg1),-3)*sinh(arg1)-pow(cosh(arg2),-3)*sinh(arg2));
-				*/
+				c->jB[0]=jB0*(1.0+Drho*cos(kx*x)*cos(ky*y)*cos(kz*z));
+				grad2rhoB=-(kx*kx+ky*ky+kz*kz)*Drho*jB0*cos(kx*x)*cos(ky*y)*cos(kz*z);
 				c->T=T0;
 				eos->CalcEoS_of_rho_T(c);
 				
@@ -149,7 +139,7 @@ void CLandauMesh::WriteInfo(){
 
 void CLandauMesh::WriteXSliceInfo(int iy,int iz){
 	int ix;
-	double maxdens=0.0,mindens=1000000.0;
+	double maxdens=0.0,mindens=1000000.0,x;
 	char filename[140]; 
 	sprintf(filename,"output/xslice_t%g.dat",t);
 	FILE *fptr=fopen(filename,"w");
@@ -157,7 +147,9 @@ void CLandauMesh::WriteXSliceInfo(int iy,int iz){
 	//	printf("----------TIME=%g -------------\n",currentmesh->t);
 	for(ix=0;ix<NX;ix++){
 		c=&(cell[ix][iy][iz]);
-		fprintf(fptr,"%12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e\n",ix*DXYZ,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T);
+		x=(ix+0.5)*DXYZ;
+		fprintf(fptr,"%8.4f %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e\n",
+		x,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T,c->kflow[1]);
 		if(c->jB[0]>maxdens)
 			maxdens=c->jB[0];
 		if(c->jB[0]<mindens)

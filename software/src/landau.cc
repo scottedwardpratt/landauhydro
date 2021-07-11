@@ -14,7 +14,7 @@ CLandau::CLandau(CparameterMap *parmapset){
 	//NT=parmap->getI("LANDAU_NT",1000);
 	DELT=parmap->getD("LANDAU_DELT",0.01);
 	printf("DELT=%g\n",DELT);
-	TMAX=parmap->getD("LANDAU_TMAX",1000.0);
+	TMAX=parmap->getD("LANDAU_TIMEMAX",1000.0);
 	NT=lrint(TMAX/DELT);
 	printf("NT=%d\n",NT);
 	NRungeKutta=parmap->getI("LANDAU_NRUNGEKUTTA",2);
@@ -43,7 +43,7 @@ CLandau::CLandau(CparameterMap *parmapset){
 	CLandauMesh::NZ=NY;
 	CLandauMesh::NDIM=NDIM;
 	CLandauMesh::landau=this;
-	CreateMeshes(parmap->getD("LANDAU_T0",0.0));
+	CreateMeshes(parmap->getD("LANDAU_TIME0",0.0));
 }
 
 //-------------------------------------------------------------
@@ -258,7 +258,7 @@ void CLandau::WriteData1D(){
 }
 
 void CLandau::AverageMeshes(double weight){
-	int ix,iy,iz,i;
+	int ix,iy,iz,i,j;
 	CLandauCell *c,*newc,*oldc;
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
@@ -272,6 +272,8 @@ void CLandau::AverageMeshes(double weight){
 				}
 				for(i=1;i<=NDIM;i++){
 					c->kflow[i]=(1.0-weight)*c->kflow[i]+0.5*weight*(oldc->kflow[i]+newc->kflow[i]);
+					for(j=1;j<=NDIM;j++)
+						c->pivisc[i][j]=(1.0-weight)*c->pivisc[i][j]+0.5*weight*(oldc->pivisc[i][j]+newc->pivisc[i][j]);
 				}
 			}
 		}

@@ -10,7 +10,7 @@ int main(int argc,char *argv[]){
 	else
 		parsfilename=argv[1];
 	int nprint,iprint=0,it,ismooth,nsmooth;
-	double tprint=5.0;
+	double tprint=1.0;
 	CparameterMap parmap;
 	parmap.ReadParsFromFile(parsfilename);
 	CLandau landau(&parmap);

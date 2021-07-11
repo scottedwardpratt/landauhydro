@@ -5,9 +5,8 @@ import os
 
 plt.figure(figsize=(6,10))
 Lmax=100.0
-delt=5
+delt=1
 fig = plt.figure() 
-nframes=1000
 time=0
 filename='../output/xslice_t'+str(time)+'.dat'
 nframes=0
@@ -67,8 +66,8 @@ anim2=animation.FuncAnimation(fig, makeT, init_func = init, frames = nframes, in
 anim2.save('T.png',writer='Pillow',fps=15)
 del anim2
 
-ymin=-0.035
-ymax=0.035
+ymin=0.0
+ymax=0.05
 axis3 = plt.axes(xlim =(0, Lmax),ylim=(ymin,ymax))
 line3, = axis3.plot([],[],lw=2)
 ttl=axis3.text(40,0.9*ymax+0.1*ymin,'',size='20')
@@ -88,7 +87,7 @@ anim3=animation.FuncAnimation(fig, makeP, init_func = init, frames = nframes, in
 anim3.save('P.png',writer='Pillow',fps=15)
 del anim3
 
-ymin=-0.015
+ymin=0.0
 ymax=0.05
 axis4 = plt.axes(xlim =(0, Lmax),ylim=(ymin,ymax))
 line4, = axis4.plot([],[],lw=2)
