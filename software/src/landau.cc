@@ -18,12 +18,15 @@ CLandau::CLandau(CparameterMap *parmapset){
 	NT=lrint(TMAX/DELT);
 	printf("NT=%d\n",NT);
 	NRungeKutta=parmap->getI("LANDAU_NRUNGEKUTTA",2);
+	output_dirname=parmap->getS("LANDAU_OUTPUT_DIRNAME","output");
 	
 	if(EOSDEF=="FreeGas"){
 		eos=new CEoS_FreeGas(parmap);
 	}
 	else if(EOSDEF=="VdW")
 		eos=new CEoS_VdW(parmap);
+	else if(EOSDEF=="SCOTT1")
+		eos=new CEoS_Scott(parmap);
 	else{
 		printf("LANDAU_EOS=%s, not recognized\n",EOSDEF.c_str());
 		exit(1);
@@ -257,7 +260,7 @@ void CLandau::WriteData1D(){
 	fclose(fptr);
 }
 
-void CLandau::AverageMeshes(double weight){
+void CLandau::AverageMeshes_EvenQuantities(double weight){
 	int ix,iy,iz,i,j;
 	CLandauCell *c,*newc,*oldc;
 	for(ix=0;ix<NX;ix++){
@@ -266,14 +269,34 @@ void CLandau::AverageMeshes(double weight){
 				c=&(currentmesh->cell[ix][iy][iz]);
 				oldc=&(oldmesh->cell[ix][iy][iz]);
 				newc=&(newmesh->cell[ix][iy][iz]);
-				for(i=0;i<=NDIM;i++){
+				i=0;
+				c->Pdens[i]=(1.0-weight)*c->Pdens[i]+0.5*weight*(oldc->Pdens[i]+newc->Pdens[i]);
+				c->jB[i]=(1.0-weight)*c->jB[i]+0.5*weight*(oldc->jB[i]+newc->jB[i]);
+				for(i=1;i<=NDIM;i++){
+					for(j=1;j<=NDIM;j++)
+						c->pivisc[i][j]=(1.0-weight)*c->pivisc[i][j]+0.5*weight*(oldc->pivisc[i][j]+newc->pivisc[i][j]);
+				}
+			}
+		}
+	}	
+	currentmesh->UpdateQuantities();	
+}
+
+void CLandau::AverageMeshes_OddQuantities(double weight){
+	int ix,iy,iz,i;
+	CLandauCell *c,*newc,*oldc;
+	for(ix=0;ix<NX;ix++){
+		for(iy=0;iy<NY;iy++){
+			for(iz=0;iz<NZ;iz++){
+				c=&(currentmesh->cell[ix][iy][iz]);
+				oldc=&(oldmesh->cell[ix][iy][iz]);
+				newc=&(newmesh->cell[ix][iy][iz]);
+				for(i=1;i<=NDIM;i++){
 					c->Pdens[i]=(1.0-weight)*c->Pdens[i]+0.5*weight*(oldc->Pdens[i]+newc->Pdens[i]);
 					c->jB[i]=(1.0-weight)*c->jB[i]+0.5*weight*(oldc->jB[i]+newc->jB[i]);
 				}
 				for(i=1;i<=NDIM;i++){
 					c->kflow[i]=(1.0-weight)*c->kflow[i]+0.5*weight*(oldc->kflow[i]+newc->kflow[i]);
-					for(j=1;j<=NDIM;j++)
-						c->pivisc[i][j]=(1.0-weight)*c->pivisc[i][j]+0.5*weight*(oldc->pivisc[i][j]+newc->pivisc[i][j]);
 				}
 			}
 		}

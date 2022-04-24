@@ -10,9 +10,10 @@ int main(int argc,char *argv[]){
 	else
 		parsfilename=argv[1];
 	int nprint,iprint=0,it,ismooth,nsmooth;
-	double tprint=1.0;
+	double tprint;
 	CparameterMap parmap;
 	parmap.ReadParsFromFile(parsfilename);
+	tprint=parmap.getD("TPRINT",5.0);
 	CLandau landau(&parmap);
 	nprint=lrint(tprint/landau.DELT);
 	landau.currentmesh->WriteXSliceInfo(0,0);
@@ -22,10 +23,11 @@ int main(int argc,char *argv[]){
 		landau.Propagate(); // Updates newmesh using currentmesh and oldmesh
 		iprint+=1;
 		nsmooth=1;
-		if(it==1)
-			nsmooth=5;
 		for(ismooth=0;ismooth<nsmooth;ismooth++){
-			landau.AverageMeshes(0.5);
+			if(it%2==0)
+				landau.AverageMeshes_EvenQuantities(1.0);
+			else
+				landau.AverageMeshes_OddQuantities(1.0);
 			landau.Propagate();
 		}
 		if(iprint==nprint){

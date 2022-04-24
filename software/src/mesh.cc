@@ -65,10 +65,11 @@ void CLandauMesh::Initialize(double tset){
 	int ix,iy,iz,i,j;
 	int nx=1,ny=0,nz=0;
 	CLandauCell *c;
-	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,Drho,T0,grad2rhoB;
+	double x,y,z,Lx,Ly,Lz,kx,ky,kz,jB0=0.2,Drho,T0,grad2rhoB,Dtemp;
 	T0=landau->parmap->getD("LANDAU_INIT_TEMP",0.15);
 	jB0=landau->parmap->getD("LANDAU_INIT_RHO",0.25);
-	Drho=landau->parmap->getD("LANDAU_INIT_DRHO",0.01);
+	Drho=landau->parmap->getD("LANDAU_INIT_DRHO",0.1);
+	Dtemp=landau->parmap->getD("LANDAU_INIT_DTEMP",0.1);
 	t=tset;
 	Lx=NX*DXYZ;
 	Ly=NY*DXYZ;
@@ -86,7 +87,7 @@ void CLandauMesh::Initialize(double tset){
 				c->Zero();
 				c->jB[0]=jB0*(1.0+Drho*cos(kx*x)*cos(ky*y)*cos(kz*z));
 				grad2rhoB=-(kx*kx+ky*ky+kz*kz)*Drho*jB0*cos(kx*x)*cos(ky*y)*cos(kz*z);
-				c->T=T0;
+				c->T=T0*(1.0-Dtemp*cos(kx*x)*cos(ky*y)*cos(kz*z));
 				eos->CalcEoS_of_rho_T(c);
 				
 				c->Pdens[0]=c->epsilonk-0.5*eos->kappa*c->jB[0]*grad2rhoB;
@@ -141,15 +142,15 @@ void CLandauMesh::WriteXSliceInfo(int iy,int iz){
 	int ix;
 	double maxdens=0.0,mindens=1000000.0,x;
 	char filename[140]; 
-	sprintf(filename,"output/xslice_t%g.dat",t);
+	sprintf(filename,"%s/xslice_t%06.1f.dat",landau->output_dirname.c_str(),t);
 	FILE *fptr=fopen(filename,"w");
 	CLandauCell *c;
 	//	printf("----------TIME=%g -------------\n",currentmesh->t);
 	for(ix=0;ix<NX;ix++){
 		c=&(cell[ix][iy][iz]);
 		x=(ix+0.5)*DXYZ;
-		fprintf(fptr,"%8.4f %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e\n",
-		x,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T,c->kflow[1]);
+		fprintf(fptr,"%8.4f %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5f\n",
+		x,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T,c->kflow[1],c->cs2);
 		if(c->jB[0]>maxdens)
 			maxdens=c->jB[0];
 		if(c->jB[0]<mindens)
@@ -177,8 +178,8 @@ void CLandauMesh::CalculateBtotEtot(){
 			}
 		}
 	}
-	printf("_________________ Calculating Btot, Etot, Stot for t=%g.  _______________\n",t);
-	printf("Btot=%g, Etot=%g, Stot=%g",Btot,Etot,Stot);
+	//printf("_________________ Calculating Btot, Etot, Stot for t=%g.  _______________\n",t);
+	printf("$$$$$$ Btot=%g, Etot=%g, Stot=%g $$$$$$$",Btot,Etot,Stot);
 	for(i=1;i<=NDIM;i++)
 		printf(", Ptot[%d]=%g",i,Ptot[i]);
 	printf("\n");

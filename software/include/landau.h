@@ -24,6 +24,7 @@ public:
 	int NX,NY,NZ,NDIM,NT;
 	int NRungeKutta;
 	double DELT,DXYZ,TMAX;
+	string output_dirname;
 	CLandauMesh *currentmesh,*newmesh,*oldmesh;
 	CEoS *eos;
 	void CycleMeshes();
@@ -32,7 +33,8 @@ public:
 	void Propagate();
 	void InterpolateOldMesh(); // changes oldmesh to fit with new and current
 	void PropagateRhoBPdens();
-	void AverageMeshes(double weight);
+	void AverageMeshes_OddQuantities(double weight);
+	void AverageMeshes_EvenQuantities(double weight);
 	
 	void WriteData1D();
 	void PrintInfo();
@@ -67,20 +69,28 @@ public:
 	static double Tlowest,Thighest;
 	CLandauCell();
 	int ix,iy,iz;  // coordinates of cell
-	vector<double> u;  // velocity
-	vector<double> M; // M is T_0i in restframe (only due to kappa)
-	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
-	vector<vector<double>> pitarget,pivisc;
-	vector<vector<double>> SE;  // in lab frame (includes KE...)
-	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K,K;
-	double eta,zeta,sigma_eta,tau_eta,sigma_zeta,tau_zeta;
-	vector<double> jB;
-	vector<double>kflow_target,kflow;
 	vector<CLandauCell *> neighborPlus,neighborMinus;
 	static double DXYZ;
 	static int NDIM;
 	static CEoS *eos;
 	
+	// Even Parity Quantities
+	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K,K;
+	double eta,zeta,sigma_eta,tau_eta,sigma_zeta,tau_zeta;
+	
+	vector<vector<double>> SE;  // in lab frame (includes KE...)
+	vector<vector<double>> pivisc;
+	vector<double>kflow_target;
+	
+	// Odd Parity Quantities
+	vector<double> jB;
+	vector<double>kflow;
+	vector<vector<double>> pitarget;
+	vector<double> u;  // velocity
+	vector<double> M; // M is T_0i in restframe (only due to kappa)
+	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
+	
+	//
 	void CalcM(); // Calculates M from T0i, jB[0] and U
 	void CalcEpsilonSE(); // Calculates Epsilon and SE tensor from Pdens, U, M
 	

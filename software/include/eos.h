@@ -45,4 +45,13 @@ public:
 	void CalcEoS_of_rho_T(CLandauCell *cell);
 };
 
+class CEoS_Scott : public CEoS{
+public:
+	double a;
+	double rho0;
+	CEoS_Scott(CparameterMap *parmapin);
+	void CalcEoS_of_rho_epsilon(CLandauCell *cell);
+	void CalcEoS_of_rho_T(CLandauCell *cell);
+};
+
 #endif

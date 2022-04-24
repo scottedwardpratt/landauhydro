@@ -1,1 +1,1 @@
-make hydro; rm -r output/*.dat; hydro parameters_$1.dat; cd figs; python xslice_animate_rho_only.py; open -a Safari animation_rho_only.html; cd ~/git/landauhydro/scottrun
+make hydro; rm -r output/*.dat; hydro parameters_$1.dat; cd figs; makeanimation.sh; cd ~/git/landauhydro/scottrun
