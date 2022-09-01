@@ -11,7 +11,7 @@
 #include <list>
 #include <Eigen/Dense>
 #include "defs.h"
-#include "parametermap.h"
+#include "msu_commonutils/parametermap.h"
 #include "landau.h"
 
 class CEoS{

@@ -4,40 +4,42 @@ import numpy as np
 import os
 
 plt.figure(figsize=(6,10))
-Lmax=100.0
+Lmax=400.0
 delt=5.0
 fig1 = plt.figure() 
 time=0
-tstring="{:.1f}".format(time)
+tstring="{:06.1f}".format(time)
 filename='../output/xslice_t'+tstring+'.dat'
+print('reading from '+filename)
 nframes=0
 while os.path.isfile(filename):
   nframes+=1
   time=time+delt
-  tstring="{:.1f}".format(time)
+  tstring="{:06.1f}".format(time)
   filename='../output/xslice_t'+tstring+'.dat'
+  print('reading from '+filename)
 
 print('nframes=',nframes) 
 
 axis = plt.axes(xlim =(0, Lmax), ylim=(0,1))
 line, = axis.plot([],[],lw=2)
 def init1():
-  ttl1.set_text('')
+  #ttl1.set_text('')
   line1.set_data([],[])
   return line1,
 
 def init2():
-  ttl2.set_text('')
+  #ttl2.set_text('')
   line2.set_data([],[])
   return line2,
   
 def init3():
-  ttl3.set_text('')
+  #ttl3.set_text('')
   line3.set_data([],[])
   return line3,
 
 def init4():
-  ttl4.set_text('')
+  #ttl4.set_text('')
   line4.set_data([],[])
   return line4,
 
@@ -49,7 +51,7 @@ ttl1=axis1.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makedensity(i):
   time=i*delt
   tt=float(i*delt)
-  tstring="{:.1f}".format(time)
+  tstring="{:06.1f}".format(time)
   filename='../output/xslice_t'+tstring+'.dat'
   print('filename=',filename)
   data = np.loadtxt(filename,skiprows=0,unpack=True)
@@ -72,7 +74,7 @@ ttl2=axis2.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makeT(i):
   time=i*delt
   tt=float(i*delt)
-  tstring="{:.1f}".format(time)
+  tstring="{:06.1f}".format(time)
   filename='../output/xslice_t'+tstring+'.dat'
   print('filename=',filename)
   data = np.loadtxt(filename,skiprows=0,unpack=True)
@@ -95,7 +97,7 @@ ttl3=axis3.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makeP(i):
   time=i*delt
   tt=float(i*delt)
-  tstring="{:.1f}".format(time)
+  tstring="{:06.1f}".format(time)
   filename='../output/xslice_t'+tstring+'.dat'
   print('filename=',filename)
   data = np.loadtxt(filename,skiprows=0,unpack=True)
@@ -118,7 +120,7 @@ ttl4=axis4.text(40,0.9*ymax+0.1*ymin,'',size='20')
 def makeTxx(i):
   time=i*delt
   tt=float(i*delt)
-  tstring="{:.1f}".format(time)
+  tstring="{:06.1f}".format(time)
   filename='../output/xslice_t'+tstring+'.dat'
   print('filename=',filename)
   data = np.loadtxt(filename,skiprows=0,unpack=True)

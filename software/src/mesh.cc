@@ -110,8 +110,6 @@ void CLandauMesh::Initialize(double tset){
 			}
 		}
 	}
-	//CalculateBtotEtot();
-	printf("Initialization finished for t=%g\n",t);
 }
 
 void CLandauMesh::WriteInfo(){

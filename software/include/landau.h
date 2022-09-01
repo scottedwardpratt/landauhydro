@@ -10,9 +10,9 @@
 #include <unordered_map>
 #include <list>
 #include <Eigen/Dense>
-#include "randy.h"
+#include "msu_commonutils/randy.h"
 #include "defs.h"
-#include "parametermap.h"
+#include "msu_commonutils/parametermap.h"
 class CEoS;
 
 class CLandauMesh;
