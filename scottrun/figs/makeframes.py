@@ -29,7 +29,7 @@ height=0.25*(0.99-bottom)
 x0=0.175
 width=0.94-x0
 
-for iframe in range(0,nframes+2):
+for iframe in range(0,nframes):
   time=iframe*delt
   tstring="{:06.1f}".format(time)
   filename='../output/xslice_t'+tstring+'.dat'
