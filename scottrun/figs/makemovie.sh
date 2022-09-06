@@ -1,1 +1,1 @@
-convert -delay 10 -scale 125% pdffiles/*.pdf crap.mp4
+convert -delay 10 -scale 125% pngfiles/*.png crap.mpeg
