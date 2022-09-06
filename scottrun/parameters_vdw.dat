@@ -7,11 +7,11 @@ string LANDAU_EOS VdW
 double LANDAU_DXYZ 0.5
 double LANDAU_DELT 0.02
 double LANDAU_TIME0 0.0
-double EOS_KAPPA 0.1
+double EOS_KAPPA 0.2
 double EOS_MASS 1.0
 double EOS_VDW_A 1.0
 double EOS_VDW_RHO0 1.0
-double EOS_KFACTOR 0.025
+double EOS_KFACTOR 1.0
 double EOS_ETAFACTOR 0.5
 double LANDAU_INIT_TEMP 0.175
 double LANDAU_INIT_RHO 0.3
