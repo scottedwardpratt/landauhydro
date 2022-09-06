@@ -63,7 +63,7 @@ void CEoS_FreeGas::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	
 	//sigma_K=sqrt(35.0*rhoB*T*T*T/(4.0*mass));
 	sigma_K=sqrt(21.0*rhoB*T*T*cs2/4.0);
-	tau_K=sqrt(mass/T)/rhoB;
+	tau_K=sqrt(mass/T)/pow(rhoB,1.0/3.0);
 	K=(sigma_K*sigma_K/(T*T))*tau_K; // usual conductivity
 	K=K/(sigma_K*rhoB);   // scaled conductivity
 	
@@ -123,9 +123,9 @@ void CEoS_VdW::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 		cs2factor=cs2factor+0.9*cs2;
 	}
 	sigma_K=sqrt(21.0*rhoB*T*T*cs2factor/4.0);
-	tau_K=sqrt(mass/T)/pow(rhoB,1.0/3.0);
+	tau_K=sqrt(mass/T)/rhoB;
 	K=Kfactor*(sigma_K*sigma_K/(T*T))*tau_K; // usual conductivity
-	K=K/(sigma_K*rhoB);   // scaled viscosity
+	K=K/(sigma_K*rhoB);   // scaled conductivity
 	
 	sigma_eta=sqrt(rhoB*T*T);
 	tau_eta=sqrt(mass/T)/pow(rhoB,1.0/3.0);
@@ -192,9 +192,9 @@ void CEoS_Scott::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 		cs2factor=cs2factor+0.9*cs2;
 	}
 	sigma_K=sqrt(21.0*rhoB*T*T*cs2factor/4.0);
-	tau_K=sqrt(mass/T)/pow(rhoB,1.0/3.0);
+	tau_K=sqrt(mass/T)/rhoB;
 	K=Kfactor*(sigma_K*sigma_K/(T*T))*tau_K; // usual conductivity
-	K=K/(sigma_K*rhoB);   // scaled viscosity
+	K=K/(sigma_K*rhoB);   // scaled condictivity
 	
 	sigma_eta=sqrt(rhoB*T*T);
 	tau_eta=sqrt(mass/T)/pow(rhoB,1.0/3.0);
