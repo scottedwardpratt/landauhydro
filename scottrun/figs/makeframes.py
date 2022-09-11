@@ -123,7 +123,7 @@ for iframe in range(0,nframes):
 ###############################################
 
   tstring="{:06.1f}".format(time)
-  filename="pngfiles/t"+tstring+".png"
+  filename="pdffiles/t"+tstring+".pdf"
   plt.savefig(filename)
   plt.cla()
   plt.clf()

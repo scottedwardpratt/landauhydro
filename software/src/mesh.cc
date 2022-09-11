@@ -177,7 +177,7 @@ void CLandauMesh::CalculateBtotEtot(){
 		}
 	}
 	//printf("_________________ Calculating Btot, Etot, Stot for t=%g.  _______________\n",t);
-	printf("$$$$$$ Btot=%g, Etot=%g, Stot=%g $$$$$$$",Btot,Etot,Stot);
+	printf("$$ Btot=%g, Etot=%g, Stot=%g $$$$$$$",Btot,Etot,Stot);
 	for(i=1;i<=NDIM;i++)
 		printf(", Ptot[%d]=%g",i,Ptot[i]);
 	printf("\n");
