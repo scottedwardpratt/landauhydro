@@ -150,7 +150,7 @@ void CLandau::PropagateRhoBPdens(){
 					exit(1);
 				}
 				DivKFlow=c->CalcDivKFlow();
-				newc->Pdens[0]+=2.0*DELT*DivKFlow;
+				newc->Pdens[0]-=2.0*DELT*DivKFlow;
 				for(i=1;i<=NDIM;i++){
 					newc->kflow[i]=oldc->kflow[i]-(2.0*DELT/c->tau_K)*(c->kflow[i]-c->kflow_target[i]);
 					vdotgradki=0.0;

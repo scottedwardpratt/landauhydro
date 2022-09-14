@@ -89,13 +89,13 @@ void CLandauCell::Calckflow_target(){
 	int i;
 	double Kflow_target,kmax2=1.0,k_tmag2=0.0;
 	for(i=1;i<=NDIM;i++){
-		Kflow_target=K*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
+		Kflow_target=-K*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
 		kflow_target[i]=Kflow_target/(sigma_K*jB[0]);
 		k_tmag2+=kflow_target[i]*kflow_target[i];
 	}
-	for(i=1;i<=NDIM;i++){
-		kflow_target[i]=kflow_target[i]/sqrt(1.0+k_tmag2/kmax2);
-	}
+	//for(i=1;i<=NDIM;i++){
+		//kflow_target[i]=kflow_target[i]/sqrt(1.0+k_tmag2/kmax2);
+	//}
 }
 
 void CLandauCell::Calcpi_target(){

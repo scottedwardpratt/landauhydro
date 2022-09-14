@@ -76,6 +76,7 @@ public:
 	
 	// Even Parity Quantities
 	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K,K;
+	double K_scaled,eta_scaled,zeta_scaled;
 	double eta,zeta,sigma_eta,tau_eta,sigma_zeta,tau_zeta;
 	
 	vector<vector<double>> SE;  // in lab frame (includes KE...)

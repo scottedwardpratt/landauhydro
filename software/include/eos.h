@@ -17,9 +17,16 @@
 class CEoS{
 public:
 	CparameterMap *parmap;
-	CEoS(){};
+	double cross_section;
+	double kappa,mass,Kfactor,Etafactor,Zetafactor;
+	CEoS(){
+		Etafactor=Kfactor=Zetafactor=kappa=0.0;
+		cross_section=1.0;
+		mass=1.0;
+	};
+	void CalcEtaZetaK(CLandauCell *cell);
 	CEoS(CparameterMap *parmapin);
-	static double kappa,mass,Kfactor,Etafactor,Zetafactor;
+	void Calculate EtaZetaK();
 	virtual void CalcEoS_of_rho_epsilon(CLandauCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->rhoB
 		// gives quantities in terms of epsilon and rhoB
 		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;

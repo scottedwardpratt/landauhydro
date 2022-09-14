@@ -35,6 +35,7 @@ for iframe in range(0,nframes):
   filename='../output/xslice_t'+tstring+'.dat'
   print('reading '+filename)
   mydata=np.loadtxt(filename,skiprows=0,unpack=True)
+  xmax=mydata[0][0]+mydata[0][len(mydata[0])-1]
   #x=mydata[0]
   #yguess=arange(0,len(x),1.0)
   #rhoB=mydata[1]
@@ -118,7 +119,7 @@ for iframe in range(0,nframes):
   plt.xlabel(None)
 
 
-  plt.text(60,0.21,"$t=$"+str(time),fontsize=24,ha='left')
+  plt.text(0.95*xmax,0.21,"$t=$"+str(time),fontsize=24,ha='right')
 
 ###############################################
 
