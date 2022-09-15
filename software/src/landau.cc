@@ -152,18 +152,25 @@ void CLandau::PropagateRhoBPdens(){
 				DivKFlow=c->CalcDivKFlow();
 				newc->Pdens[0]-=2.0*DELT*DivKFlow;
 				for(i=1;i<=NDIM;i++){
-					newc->kflow[i]=oldc->kflow[i]-(2.0*DELT/c->tau_K)*(c->kflow[i]-c->kflow_target[i]);
+					newc->Kflow[i]=newc->alpha_K*(
+						oldc->Kflow[i]/oldc->alpha_K
+						-(2.0*DELT/c->tau_K)*(c->Kflow[i]/c->alpha_K-c->Kflow_target[i]/c->alpha_K)
+						);
+
 					vdotgradki=0.0;
 					for(j=1;j<=NDIM;j++){
-						vdotgradki+=c->u[j]*(c->neighborPlus[j]->kflow[i]-c->neighborMinus[j]->kflow[i])/(2.0*DXYZ);
-						newc->pivisc[i][j]=oldc->pivisc[i][j]-(2.0*DELT/c->tau_eta)*(c->pivisc[i][j]-c->pitarget[i][j]);
+						vdotgradki+=c->u[j]*(c->neighborPlus[j]->Kflow[i]-c->neighborMinus[j]->Kflow[i])/(2.0*DXYZ);
+
+						newc->pivisc[i][j]=newc->alpha_eta*(
+							oldc->pivisc[i][j]/oldc->pivisc[i][j]-(2.0*DELT/c->tau_eta)*(c->pivisc[i][j]/c->alpha_eta-c->pitarget[i][j]/c->alpha_eta);
 						vdotgradpiij=0.0;
 						for(k=1;k<=NDIM;k++){
 							vdotgradpiij+=c->u[k]*(c->neighborPlus[k]->pivisc[i][j]-c->neighborMinus[k]->pivisc[i][j])/(2.0*DXYZ);
 						}
 						newc->pivisc[i][j]-=vdotgradpiij*DELT;
+
 					}
-					newc->kflow[i]-=vdotgradki*DELT;
+					newc->Kflow[i]-=vdotgradki*DELT;
 				}
 			}
 		}
@@ -296,7 +303,7 @@ void CLandau::AverageMeshes_OddQuantities(double weight){
 					c->jB[i]=(1.0-weight)*c->jB[i]+0.5*weight*(oldc->jB[i]+newc->jB[i]);
 				}
 				for(i=1;i<=NDIM;i++){
-					c->kflow[i]=(1.0-weight)*c->kflow[i]+0.5*weight*(oldc->kflow[i]+newc->kflow[i]);
+					c->Kflow[i]=(1.0-weight)*c->Kflow[i]+0.5*weight*(oldc->Kflow[i]+newc->Kflow[i]);
 				}
 			}
 		}

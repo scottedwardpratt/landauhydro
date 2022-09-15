@@ -102,7 +102,7 @@ void CLandauMesh::Initialize(double tset){
 			for(iz=0;iz<NZ;iz++){
 				c=&cell[ix][iy][iz];
 				for(i=1;i<=NDIM;i++){
-					c->kflow[i]=c->kflow_target[i];
+					c->Kflow[i]=c->Kflow_target[i];
 					for(j=1;j<=NDIM;j++){
 						c->pivisc[i][j]=c->pitarget[i][j];
 					}
@@ -148,7 +148,7 @@ void CLandauMesh::WriteXSliceInfo(int iy,int iz){
 		c=&(cell[ix][iy][iz]);
 		x=(ix+0.5)*DXYZ;
 		fprintf(fptr,"%8.4f %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5e %12.5f\n",
-		x,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T,c->kflow[1],c->cs2);
+		x,c->jB[0],c->jB[1],c->epsilonk,c->u[1],c->Pr,c->SE[1][1],c->T,c->Kflow[1],c->cs2);
 		if(c->jB[0]>maxdens)
 			maxdens=c->jB[0];
 		if(c->jB[0]<mindens)
@@ -230,7 +230,7 @@ void CLandauMesh::UpdateQuantities(){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
 				c=&cell[ix][iy][iz];
-				c->Calckflow_target();
+				c->CalcKflow_target();
 				c->Calcpi_target();
 			}
 		}

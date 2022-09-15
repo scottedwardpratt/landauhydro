@@ -26,7 +26,7 @@ public:
 	};
 	void CalcEtaZetaK(CLandauCell *cell);
 	CEoS(CparameterMap *parmapin);
-	void Calculate EtaZetaK();
+	void CalcEtaZetaK();
 	virtual void CalcEoS_of_rho_epsilon(CLandauCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->rhoB
 		// gives quantities in terms of epsilon and rhoB
 		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;

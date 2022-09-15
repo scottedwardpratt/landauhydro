@@ -75,17 +75,18 @@ public:
 	static CEoS *eos;
 	
 	// Even Parity Quantities
-	double epsilonk,Pr,T,SoverB,cs2,tau_K,sigma_K,K;
-	double K_scaled,eta_scaled,zeta_scaled;
-	double eta,zeta,sigma_eta,tau_eta,sigma_zeta,tau_zeta;
+	double epsilonk,Pr,T,SoverB,cs2;
+	double K,alpha_K,tau_K;
+	double eta,alpha_eta,tau_eta;
+	double zeta,alpha_zeta,tau_zeta;
 	
 	vector<vector<double>> SE;  // in lab frame (includes KE...)
 	vector<vector<double>> pivisc;
-	vector<double>kflow_target;
+	vector<double>Kflow_target;
 	
 	// Odd Parity Quantities
 	vector<double> jB;
-	vector<double>kflow;
+	vector<double>Kflow;
 	vector<vector<double>> pitarget;
 	vector<double> u;  // velocity
 	vector<double> M; // M is T_0i in restframe (only due to kappa)
@@ -105,7 +106,7 @@ public:
 	void CalcDeliTij(vector<double> &DeliTij);
 	double CalcDivKFlow();
 	void CalcOmega(vector<vector<double>> &omega);
-	void Calckflow_target();
+	void CalcKflow_target();
 	void Calcpi_target();
 
 	void PrintInfo();

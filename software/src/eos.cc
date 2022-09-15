@@ -42,7 +42,7 @@ CEoS_Scott::CEoS_Scott(CparameterMap *parmapset){
 
 void CEoS_FreeGas::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
-	double T,Pr,SoverB,cs2,K,tau_K,sigma_K,eta,tau_eta,sigma_eta,zeta,tau_zeta,sigma_zeta;
+	double T,Pr,SoverB,cs2;
 	Pr=epsilonk/1.5;
 	T=Pr/rhoB;
 	if(T<0.0){
@@ -55,21 +55,6 @@ void CEoS_FreeGas::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	}
 	SoverB=log(pow(T,1.5)/rhoB);
 	cs2=(5.0/3.0)*T/mass;
-	
-	//sigma_K=sqrt(35.0*rhoB*T*T*T/(4.0*mass));
-	sigma_K=1.0/rhoB;
-	tau_K=sqrt(mass/T)/rhoB;
-	K=(T/mass)*tau_K; // usual conductivity
-	K=K/(sigma_K*rhoB);   // scaled conductivity
-	
-	sigma_eta=sqrt(Etafactor*rhoB*T*T);
-	tau_eta=sqrt(mass/T)/rhoB;
-	eta=(sigma_eta*sigma_eta/T)*tau_eta; // usual viscosity
-	eta=eta/(sigma_eta*rhoB);  // scaled viscosity
-	
-	sigma_zeta=1.0;
-	tau_zeta=0.0;
-	zeta=0.0;
 	
 	cell->T=T;
 	cell->Pr=Pr;
@@ -87,7 +72,7 @@ void CEoS_FreeGas::CalcEoS_of_rho_T(CLandauCell *cell){
 
 void CEoS_VdW::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
-	double T,Pr,SoverB,cs2,K,tau_K,sigma_K,eta,tau_eta,sigma_eta,zeta,tau_zeta,sigma_zeta,cs2factor;
+	double T,Pr,SoverB,cs2;
 	T=2.0*(epsilonk+a*rhoB*rhoB)/(3.0*rhoB);
 	if(T<0.0){
 		printf("in VdW CalcEoS, T<0!! =%g\n",T);
@@ -102,19 +87,12 @@ void CEoS_VdW::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	SoverB=1.5*log(T)+log((rho0/rhoB)-1.0);
 	cs2=((5.0*T/3.0)/((1.0-rhoB/rho0)*(1.0-rhoB/rho0))-2.0*a*rhoB)/mass;
 	
-	//sigma_K=sqrt(35.0*rhoB*T*T*T/(4.0*mass));
-	cs2factor=0.1*sqrt(35.0*rhoB*T*T*T/(4.0*mass));
-	if(cs2>0.0){
-		cs2factor=cs2factor+0.9*cs2;
-	}
-	
-	CalcEtaZetaK(cell);
-	
 	cell->T=T;
 	cell->Pr=Pr;
 	cell->SoverB=SoverB;
 	cell->cs2=cs2;
 
+	CalcEtaZetaK(cell);
 }
 
 void CEoS_VdW::CalcEoS_of_rho_T(CLandauCell *cell){
@@ -125,7 +103,7 @@ void CEoS_VdW::CalcEoS_of_rho_T(CLandauCell *cell){
 
 void CEoS_Scott::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	double epsilonk=cell->epsilonk,rhoB=cell->jB[0];
-	double T,Pr,SoverB,cs2,K,tau_K,sigma_K,eta,tau_eta,sigma_eta,zeta,tau_zeta,sigma_zeta,cs2factor;
+	double T,Pr,SoverB,cs2;
 	double F,Fprime,G,Gprime,H,x;
 	x=rhoB/rho0;
 	// P=rho*T*F(x)-a*rho0*rho*G(x)
@@ -149,12 +127,6 @@ void CEoS_Scott::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	Gprime=(-x*x*x-3.0*x*x+2.0*x)/pow(1.0+x,3);
 	cs2=(T/mass)*(F+x*Fprime+2.0*F*F/3.0)-a*rho0*Gprime/mass;
 	
-	//sigma_K=sqrt(35.0*rhoB*T*T*T/(4.0*mass));
-	cs2factor=0.1*sqrt(35.0*rhoB*T*T*T/(4.0*mass));
-	if(cs2>0.0){
-		cs2factor=cs2factor+0.9*cs2;
-	}
-	
 	cell->T=T;
 	cell->Pr=Pr;
 	cell->SoverB=SoverB;
@@ -173,18 +145,18 @@ void CEoS_Scott::CalcEoS_of_rho_T(CLandauCell *cell){
 }
 
 void CEoS::CalcEtaZetaK(CLandauCell *cell){
-	tau_K=sqrt(mass/T)/rhoB;
-	K=Kfactor*(T/mass)*tau_K;
-	sigma_K=1.0;  //sqrt(21.0*rhoB*T*T*cs2factor/4.0); // scaling factor
-	K_scaled=K/sigma_K;   // scaled condictivity
-	
-	tau_eta=sqrt(mass/T)/rho_B;
-	eta=(rhoB*T)*tau_eta; // usual viscosity
-	sigma_eta=sqrt(rhoB*T)
-	eta_scaled=Etafactor*eta/sigma_eta;  // scaled viscosity
-	
-	sigma_zeta=1.0;
-	tau_zeta=0.0;
-	zeta=0.0;
-	zeta_scaled=0.0;
+	double rhoB=cell->rhoB,T=cell->T;
+
+	cell->tau_K=Kfactor*sqrt(mass/T)/rhoB;
+	cell->alpha_K=sqrt(rhoB*T*T*T);
+	cell->K=(21.0/4.0)*(T/mass)*tau_K;
+
+	cell->tau_eta=etafactor*sqrt(mass/T)/rhoB;
+	cell->alpha_eta=????sqrt(rhoB*T*T*T);
+	cell->eta=????*tau_eta;
+
+	cell->tau_zeta=1.0;
+	cell->alpha_zeta=1.0;
+	cell->zeta=0.0;
+
 }
