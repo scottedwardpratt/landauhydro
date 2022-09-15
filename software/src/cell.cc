@@ -96,7 +96,7 @@ double CLandauCell::CalcDivKFlow(){
 	int i;
 	double DivKFlow=0.0;
 	for(i=1;i<=NDIM;i++){
-		DivKFlow+=(neighborPlus[i]->Kflow[i]-neighborMinus->Kflow[i]);
+		DivKFlow+=(neighborPlus[i]->Kflow[i]-neighborMinus[i]->Kflow[i]);
 	}
 	return DivKFlow/(2.0*DXYZ);
 }

@@ -152,7 +152,7 @@ void CEoS::CalcEtaZetaK(CLandauCell *cell){
 	cell->K=(21.0/4.0)*(T/mass)*tau_K;
 
 	cell->tau_eta=etafactor*sqrt(mass/T)/rhoB;
-	cell->alpha_eta=????sqrt(rhoB*T*T*T);
+	cell->alpha_eta=(4.0/15.0)*sqrt(rhoB*rhoB*T*T);
 	cell->eta=????*tau_eta;
 
 	cell->tau_zeta=1.0;
