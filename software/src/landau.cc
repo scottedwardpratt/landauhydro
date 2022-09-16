@@ -102,6 +102,9 @@ void CLandau::InterpolateOldMesh(){
 				oldc=&(oldmesh->cell[ix][iy][iz]);
 				newc=&(newmesh->cell[ix][iy][iz]);
 				oldc->epsilonk=2.0*c->epsilonk-newc->epsilonk;
+				if(oldc->epsilonk<0){
+					printf("In InterpolateOldMesh, epsilonk=%g\n",oldc->epsilonk);
+				}
 				oldc->Pr=2.0*c->Pr-newc->Pr;
 				oldc->T=2.0*c->T-newc->T;
 				for(k=0;k<=NDIM;k++){
@@ -127,9 +130,15 @@ void CLandau::PropagateRhoBPdens(){
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
+				
 				c=&(currentmesh->cell[ix][iy][iz]);
 				oldc=&(oldmesh->cell[ix][iy][iz]);
 				newc=&(newmesh->cell[ix][iy][iz]);
+			//if(oldc->Pdens[0]<0.0){
+				printf("BEFORE: old Pdens[0]=%g, new Pdens[0]=%g\n",oldc->Pdens[0],newc->Pdens[0]);
+				//exit(1);
+				//}
+				
 				newc->jB[0]=oldc->jB[0]-2.0*DELT*c->DelDotJB();
 				if(newc->jB[0]<0.0 || newc->jB[0]!=newc->jB[0]){
 					printf("negative or ill-defined density in CLandau::PropagateRhoBPdens(), rho=%g, t=%g\n",
@@ -141,6 +150,10 @@ void CLandau::PropagateRhoBPdens(){
 				c->CalcDeliTij(DeliTij);
 				for(i=0;i<=NDIM;i++){
 					newc->Pdens[i]=oldc->Pdens[i]-2.0*DELT*DeliTij[i];
+					if(DeliTij[i]!=DeliTij[i]){
+						printf("DeliTij=Nan\n");
+						exit(1);
+					}
 				}
 				if(newc->Pdens[1]!=newc->Pdens[1]){
 					printf("ill-defined momentum density in CLandau::PropagateRhoBPdens(), %g, t=%g\n",
@@ -151,6 +164,7 @@ void CLandau::PropagateRhoBPdens(){
 				}
 				DivKFlow=c->CalcDivKFlow();
 				newc->Pdens[0]-=2.0*DELT*DivKFlow;
+				printf("DivKFlow=%g\n",DivKFlow);
 				for(i=1;i<=NDIM;i++){
 					newc->Kflow[i]=newc->alpha_K*(
 						oldc->Kflow[i]/oldc->alpha_K
@@ -159,18 +173,25 @@ void CLandau::PropagateRhoBPdens(){
 
 					vdotgradki=0.0;
 					for(j=1;j<=NDIM;j++){
+						
 						vdotgradki+=c->u[j]*(c->neighborPlus[j]->Kflow[i]-c->neighborMinus[j]->Kflow[i])/(2.0*DXYZ);
 
 						newc->pivisc[i][j]=newc->alpha_eta*(
-							oldc->pivisc[i][j]/oldc->pivisc[i][j]-(2.0*DELT/c->tau_eta)*(c->pivisc[i][j]/c->alpha_eta-c->pitarget[i][j]/c->alpha_eta);
+							oldc->pivisc[i][j]/oldc->alpha_eta-(2.0*DELT/c->tau_eta)*(c->pivisc[i][j]/c->alpha_eta-c->pi_target[i][j]/c->alpha_eta));
 						vdotgradpiij=0.0;
 						for(k=1;k<=NDIM;k++){
 							vdotgradpiij+=c->u[k]*(c->neighborPlus[k]->pivisc[i][j]-c->neighborMinus[k]->pivisc[i][j])/(2.0*DXYZ);
 						}
 						newc->pivisc[i][j]-=vdotgradpiij*DELT;
-
 					}
 					newc->Kflow[i]-=vdotgradki*DELT;
+				}
+				printf("tau_K=%g\n",c->tau_K);
+				printf("oldc->alpha_K=%g, newc->alpha_K=%g\n",oldc->alpha_K,newc->alpha_K);
+				printf("oldc->Kflow[1]=%g, c->Kflow[1]=%g, newc->Kflow[1]=%g, Kflow_target=%g\n",oldc->Kflow[1],c->Kflow[1],newc->Kflow_target[1]);
+				if(newc->Pdens[0]<0.0){
+					printf("after: Pdens[0]<0.0,=%g\n",newc->Pdens[0]);
+					exit(1);
 				}
 			}
 		}

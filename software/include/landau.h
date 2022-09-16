@@ -87,7 +87,7 @@ public:
 	// Odd Parity Quantities
 	vector<double> jB;
 	vector<double>Kflow;
-	vector<vector<double>> pitarget;
+	vector<vector<double>> pi_target;
 	vector<double> u;  // velocity
 	vector<double> M; // M is T_0i in restframe (only due to kappa)
 	vector<double> Pdens; // Momentum density (not same as T0i in non-rel theory)
@@ -106,8 +106,8 @@ public:
 	void CalcDeliTij(vector<double> &DeliTij);
 	double CalcDivKFlow();
 	void CalcOmega(vector<vector<double>> &omega);
-	void CalcKflow_target();
-	void Calcpi_target();
+	void Calc_Kflow_target();
+	void Calc_pi_target();
 
 	void PrintInfo();
 	void Zero();

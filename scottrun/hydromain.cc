@@ -10,12 +10,10 @@ int main(int argc,char *argv[]){
 	else
 		parsfilename=argv[1];
 	int nprint,iprint=0,it,ismooth,nsmooth;
-	double tprint;
 	CparameterMap parmap;
 	parmap.ReadParsFromFile(parsfilename);
-	tprint=parmap.getD("TPRINT",5.0);
 	CLandau landau(&parmap);
-	nprint=lrint(tprint/landau.DELT);
+	nprint=lrint(parmap.getD("TPRINT",5.0)/landau.DELT);
 	landau.currentmesh->WriteXSliceInfo(0,0);
 	landau.oldmesh->CalculateBtotEtot();
 	landau.currentmesh->CalculateBtotEtot();

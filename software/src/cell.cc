@@ -14,15 +14,16 @@ CLandauCell::CLandauCell(){
 	jB.resize(NDIM+1);
 	SE.resize(NDIM+1);
 	pivisc.resize(NDIM+1);
-	pitarget.resize(NDIM+1);
+	pi_target.resize(NDIM+1);
 	Kflow.resize(NDIM+1);
 	Kflow_target.resize(NDIM+1);
 	neighborMinus.resize(NDIM+1);
 	neighborPlus.resize(NDIM+1);
 	for(i=0;i<=NDIM;i++){
+		Kflow[i]=0.0;
 		Pdens[i]=0.0;
 		SE[i].resize(NDIM+1);
-		pitarget[i].resize(NDIM+1);
+		pi_target[i].resize(NDIM+1);
 		pivisc[i].resize(NDIM+1);
 		for(j=0;j<=NDIM;j++){
 			SE[i][j]=0.0;
@@ -85,7 +86,7 @@ double CLandauCell::DelDotU(){
 	return answer/(2.0*DXYZ);
 }
 
-void CLandauCell::CalcKflow_target(){
+void CLandauCell::Calc_Kflow_target(){
 	int i;
 	for(i=1;i<=NDIM;i++){
 		Kflow_target[i]=-K*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
@@ -131,14 +132,20 @@ void CLandauCell::CalcEpsilonSE(){
 	double grad2rhoB,epsilon,gradrhoB2=0.0,mass=eos->mass;
 	vector<double> gradrhoB(NDIM+1);
 	epsilon=Pdens[0];
+	printf("-------\nix=%d: before, epsilon=%g\n",ix,epsilon);
 	for(i=1;i<=NDIM;i++)
 		epsilon-=(M[i]*u[i]+0.5*eos->mass*jB[0]*u[i]*u[i]);
+	printf("now, epsilon=%g\n",epsilon);
 	grad2rhoB=Grad2RhoB();
 	CalcGradRhoB(gradrhoB);
 	for(i=1;i<=NDIM;i++){
 		gradrhoB2+=gradrhoB[i]*gradrhoB[i];
 	}
 	epsilonk=epsilon+0.5*eos->kappa*jB[0]*grad2rhoB;
+	if(epsilonk<0.0){
+		printf("Yikes!!! epsilon=%g, epsilonk=%g, jB[0]=%g\n",epsilon,epsilonk,jB[0]);
+		exit(1);
+	}
 	eos->CalcEoS_of_rho_epsilon(this);
 	if(T<Tlowest){
 		Tlowest=T;
@@ -168,17 +175,17 @@ void CLandauCell::CalcEpsilonSE(){
 	}
 }
 
-void CLandauCell::Calc_pitarget(){
+void CLandauCell::Calc_pi_target(){
 	int i,j;
 	double deldotv=DelDotU();
 	for(i=1;i<NDIM;i++){
 		for(j=i;j<NDIM+1;j++){
 			if(j!=i){
-				pitarget[i][j]=-eta*(neighborPlus[j]->u[i]-neighborMinus[j]->u[i])/(2.0*DXYZ);
-				pitarget[i][j]-=eta*(neighborPlus[i]->u[j]-neighborMinus[i]->u[j])/(2.0*DXYZ);
-				pitarget[j][i]=pitarget[i][j];
+				pi_target[i][j]=-eta*(neighborPlus[j]->u[i]-neighborMinus[j]->u[i])/(2.0*DXYZ);
+				pi_target[i][j]-=eta*(neighborPlus[i]->u[j]-neighborMinus[i]->u[j])/(2.0*DXYZ);
+				pi_target[j][i]=pi_target[i][j];
 			}
 		}
-		pitarget[i][i]+=(2.0*eta/3.0)*deldotv;
+		pi_target[i][i]+=(2.0*eta/3.0)*deldotv;
 	}
 }

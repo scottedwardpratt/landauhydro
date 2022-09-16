@@ -24,6 +24,9 @@ CLandauMesh::CLandauMesh(CLandau *landauset,double tset){
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
+				cell[ix][iy][iz].ix=ix;
+				cell[ix][iy][iz].iy=iy;
+				cell[ix][iy][iz].iz=iz;
 				
 				if(ix>0)
 					cell[ix][iy][iz].neighborMinus[1]=&cell[ix-1][iy][iz];
@@ -104,7 +107,7 @@ void CLandauMesh::Initialize(double tset){
 				for(i=1;i<=NDIM;i++){
 					c->Kflow[i]=c->Kflow_target[i];
 					for(j=1;j<=NDIM;j++){
-						c->pivisc[i][j]=c->pitarget[i][j];
+						c->pivisc[i][j]=c->pi_target[i][j];
 					}
 				}
 			}
@@ -230,8 +233,8 @@ void CLandauMesh::UpdateQuantities(){
 		for(iy=0;iy<NY;iy++){
 			for(iz=0;iz<NZ;iz++){
 				c=&cell[ix][iy][iz];
-				c->CalcKflow_target();
-				c->Calcpi_target();
+				c->Calc_Kflow_target();
+				c->Calc_pi_target();
 			}
 		}
 	}

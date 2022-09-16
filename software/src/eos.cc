@@ -5,8 +5,8 @@ CEoS::CEoS(CparameterMap *parmapset){
 	kappa=parmap->getD("EOS_KAPPA",0.0);
 	mass=parmap->getD("EOS_MASS",1.0);
 	Kfactor=parmap->getD("EOS_KFACTOR",0.2);
-	Etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
-	Zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
+	etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
+	zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
 }
 
 CEoS_FreeGas::CEoS_FreeGas(CparameterMap *parmapset){
@@ -14,8 +14,8 @@ CEoS_FreeGas::CEoS_FreeGas(CparameterMap *parmapset){
 	kappa=parmap->getD("EOS_KAPPA",0.0);
 	mass=parmap->getD("EOS_MASS",1.0);
 	Kfactor=parmap->getD("EOS_KFACTOR",1.0);
-	Etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
-	Zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
+	etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
+	zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
 }
 
 CEoS_VdW::CEoS_VdW(CparameterMap *parmapset){
@@ -25,8 +25,8 @@ CEoS_VdW::CEoS_VdW(CparameterMap *parmapset){
 	Kfactor=parmap->getD("EOS_KFACTOR",1.0);
 	a=parmap->getD("EOS_VDW_A",1.0);
 	rho0=parmap->getD("EOS_VDW_RHO0",1.0);
-	Etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
-	Zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
+	etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
+	zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
 }
 
 CEoS_Scott::CEoS_Scott(CparameterMap *parmapset){
@@ -36,8 +36,8 @@ CEoS_Scott::CEoS_Scott(CparameterMap *parmapset){
 	Kfactor=parmap->getD("EOS_KFACTOR",1.0);
 	a=parmap->getD("EOS_VDW_A",1.0);
 	rho0=parmap->getD("EOS_VDW_RHO0",1.0);
-	Etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
-	Zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
+	etafactor=parmap->getD("EOS_ETAFACTOR",1.0);
+	zetafactor=parmap->getD("EOS_ZETAFACTOR",0.0);
 }
 
 void CEoS_FreeGas::CalcEoS_of_rho_epsilon(CLandauCell *cell){
@@ -47,6 +47,7 @@ void CEoS_FreeGas::CalcEoS_of_rho_epsilon(CLandauCell *cell){
 	T=Pr/rhoB;
 	if(T<0.0){
 		printf("in Free Gas CalcEoS, T<0!! =%g\n",T);
+		printf("epsilonk=%g, rhoB=%g\n",epsilonk,rhoB);
 		exit(1);
 	}
 	if(rhoB<0.0){
@@ -145,15 +146,15 @@ void CEoS_Scott::CalcEoS_of_rho_T(CLandauCell *cell){
 }
 
 void CEoS::CalcEtaZetaK(CLandauCell *cell){
-	double rhoB=cell->rhoB,T=cell->T;
+	double rhoB=cell->jB[0],T=cell->T;
 
 	cell->tau_K=Kfactor*sqrt(mass/T)/rhoB;
 	cell->alpha_K=sqrt(rhoB*T*T*T);
-	cell->K=(21.0/4.0)*(T/mass)*tau_K;
+	cell->K=(21.0/4.0)*(T/mass)*cell->tau_K;
 
 	cell->tau_eta=etafactor*sqrt(mass/T)/rhoB;
 	cell->alpha_eta=(4.0/15.0)*sqrt(rhoB*rhoB*T*T);
-	cell->eta=????*tau_eta;
+	cell->eta=cell->alpha_eta*cell->tau_eta;//// DANGER -- CHECK!!!!
 
 	cell->tau_zeta=1.0;
 	cell->alpha_zeta=1.0;

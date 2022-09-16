@@ -18,9 +18,9 @@ class CEoS{
 public:
 	CparameterMap *parmap;
 	double cross_section;
-	double kappa,mass,Kfactor,Etafactor,Zetafactor;
+	double kappa,mass,Kfactor,etafactor,zetafactor;
 	CEoS(){
-		Etafactor=Kfactor=Zetafactor=kappa=0.0;
+		etafactor=Kfactor=zetafactor=kappa=0.0;
 		cross_section=1.0;
 		mass=1.0;
 	};
