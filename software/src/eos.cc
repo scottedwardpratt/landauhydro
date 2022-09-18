@@ -1,4 +1,5 @@
 #include "eos.h"
+#include "msu_commonutils/misc.h"
 
 CEoS::CEoS(CparameterMap *parmapset){
 	parmap=parmapset;  

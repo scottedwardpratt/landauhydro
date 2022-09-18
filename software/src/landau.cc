@@ -173,9 +173,7 @@ void CLandau::PropagateRhoBPdens(){
 
 					vdotgradki=0.0;
 					for(j=1;j<=NDIM;j++){
-						
 						vdotgradki+=c->u[j]*(c->neighborPlus[j]->Kflow[i]-c->neighborMinus[j]->Kflow[i])/(2.0*DXYZ);
-
 						newc->pivisc[i][j]=newc->alpha_eta*(
 							oldc->pivisc[i][j]/oldc->alpha_eta-(2.0*DELT/c->tau_eta)*(c->pivisc[i][j]/c->alpha_eta-c->pi_target[i][j]/c->alpha_eta));
 						vdotgradpiij=0.0;
@@ -186,9 +184,10 @@ void CLandau::PropagateRhoBPdens(){
 					}
 					newc->Kflow[i]-=vdotgradki*DELT;
 				}
-				printf("tau_K=%g\n",c->tau_K);
-				printf("oldc->alpha_K=%g, newc->alpha_K=%g\n",oldc->alpha_K,newc->alpha_K);
-				printf("oldc->Kflow[1]=%g, c->Kflow[1]=%g, newc->Kflow[1]=%g, Kflow_target=%g\n",oldc->Kflow[1],c->Kflow[1],newc->Kflow_target[1]);
+				printf("tau_K=%g, vdotgradki=%g\n",c->tau_K,vdotgradki);
+				printf("oldc->alpha_K=%g, c->alpha_K=%g, newc->alpha_K=%g\n",oldc->alpha_K,c->alpha_K,newc->alpha_K);
+				printf("oldc->Kflow[1]=%g, c->Kflow[1]=%g, newc->Kflow[1]=%g, Kflow_target=%g\n",
+				oldc->Kflow[1],c->Kflow[1],newc->Kflow[1],newc->Kflow_target[1]);
 				if(newc->Pdens[0]<0.0){
 					printf("after: Pdens[0]<0.0,=%g\n",newc->Pdens[0]);
 					exit(1);
