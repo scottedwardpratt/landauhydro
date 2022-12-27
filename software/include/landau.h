@@ -21,6 +21,7 @@ class CIntegralCell;
 class CHalfIntegralCell;
 
 class CMeshParameters{
+public:
 	static int NX;
 	static double DX;
 	static double DT;
@@ -40,7 +41,7 @@ public:
 	void CycleIntegralMeshes();
 	void CycleHalfIntegralMeshes();
 	
-	void WriteData1D();
+	void WriteData();
 	void PrintInfo();
 	void WriteInfo();
 	void Evolve();
@@ -65,6 +66,7 @@ public:
 };
 
 class CHalfIntegralMesh{
+public:
 	static CLandau *landau;
 	double t;
 	vector<CIntegralCell> *cell;
@@ -75,6 +77,8 @@ class CHalfIntegralMesh{
 };
 
 class CIntegralCell{
+public:
+	CIntegralCell();
 	static CLandau *landau;
 	static CEoS *eos;
 	CIntegralCell *neighborMinus,*neighborPlus;
@@ -82,7 +86,9 @@ class CIntegralCell{
 	double x,Kx_target;
 	// These quantities refer to volume
 	double Delx;
-	double S,Q,rho,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma,zeta,kappa,Pr,Pi,epsilon,epsilonk,grad2Rho;
+	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma;
+	double Pi,epsilon,epsilonk,grad2Rho;
+	double T,Pr,SoverB,cs2,eta,zeta;
 	vector<double> pi_shear;
 	double pi_bulk;
 	//
@@ -93,6 +99,7 @@ class CIntegralCell{
 };
 
 class CHalfIntegralCell{
+public:
 	static CLandau *landau;
 	static CEoS *eos;
 	// These quantities refer to lower boundaries

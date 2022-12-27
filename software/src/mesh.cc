@@ -2,7 +2,6 @@
 #include "eos.h"
 CLandau *CLandauMesh::landau=NULL;
 CEoS *CLandauMesh::eos=NULL;
-double CLandauMesh::DX=0.0;
 int CLandauMesh::NX=1;
 int CLandauMesh::NY=1;
 int CLandauMesh::NZ=1;

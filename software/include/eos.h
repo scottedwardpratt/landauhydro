@@ -31,7 +31,7 @@ public:
 		// gives quantities in terms of epsilon and rhoB
 		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;
 	}
-	virtual void CalcEoS_of_rho_T(CLandauCell *cell){
+	virtual void CalcEoS_of_rho_T(CIntegralCell *cell){
 		cell->epsilonk=cell->Pr=cell->SoverB=cell->cs2=cell->eta=cell->zeta=0.0;
 	}
 	virtual void CalcEoS_of_rho_sdens(CIntegralCell *cell){
@@ -42,8 +42,8 @@ public:
 class CEoS_FreeGas : public CEoS{
 public:
 	CEoS_FreeGas(CparameterMap *parmapin);
-	void CalcEoS_of_rho_epsilon(CLandauCell *cell);
-	void CalcEoS_of_rho_T(CLandauCell *cell);
+	void CalcEoS_of_rho_epsilon(CIntegralCell *cell);
+	void CalcEoS_of_rho_T(CIntegralCell *cell);
 };
 
 class CEoS_VdW : public CEoS{
@@ -51,8 +51,8 @@ public:
 	double a;
 	double rho0;
 	CEoS_VdW(CparameterMap *parmapin);
-	void CalcEoS_of_rho_epsilon(CLandauCell *cell);
-	void CalcEoS_of_rho_T(CLandauCell *cell);
+	void CalcEoS_of_rho_epsilon(CIntegralCell *cell);
+	void CalcEoS_of_rho_T(CIntegralCell *cell);
 };
 
 class CEoS_Scott : public CEoS{
@@ -60,8 +60,8 @@ public:
 	double a;
 	double rho0;
 	CEoS_Scott(CparameterMap *parmapin);
-	void CalcEoS_of_rho_epsilon(CLandauCell *cell);
-	void CalcEoS_of_rho_T(CLandauCell *cell);
+	void CalcEoS_of_rho_epsilon(CIntegralCell *cell);
+	void CalcEoS_of_rho_T(CIntegralCell *cell);
 };
 
 #endif

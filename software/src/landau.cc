@@ -281,7 +281,7 @@ void CLandau::WriteInfo(){
 	printf("max density=%g\n",maxdens);
 }
 
-void CLandau::WriteData1D(){
+void CLandau::WriteData(){
 	char filename[100];
 	sprintf(filename,"output/data1d_t%g.dat",currentmesh->t);
 	FILE *fptr=fopen(filename,"w");
