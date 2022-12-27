@@ -18,21 +18,24 @@ class CEoS{
 public:
 	CparameterMap *parmap;
 	double cross_section;
-	double kappa,mass,Kfactor,etafactor,zetafactor;
+	double kappa,mass,Kfactor,etafactor,zetafactor,gamma;
 	CEoS(){
-		etafactor=Kfactor=zetafactor=kappa=0.0;
+		etafactor=Kfactor=zetafactor=kappa=gamma=0.0;
 		cross_section=1.0;
 		mass=1.0;
 	};
-	void CalcEtaZetaK(CLandauCell *cell);
+	void CalcEtaZetaK(CIntegralCell *cell);
 	CEoS(CparameterMap *parmapin);
 	void CalcEtaZetaK();
-	virtual void CalcEoS_of_rho_epsilon(CLandauCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->rhoB
+	virtual void CalcEoS_of_rho_epsilon(CIntegralCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->rhoB
 		// gives quantities in terms of epsilon and rhoB
 		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;
 	}
 	virtual void CalcEoS_of_rho_T(CLandauCell *cell){
 		cell->epsilonk=cell->Pr=cell->SoverB=cell->cs2=cell->eta=cell->zeta=0.0;
+	}
+	virtual void CalcEoS_of_rho_sdens(CIntegralCell *cell){
+		cell->T=cell->Pr=cell->epsilon=cell->cs2=0.0;
 	}
 };
 

@@ -33,65 +33,56 @@ CLandauCell::CLandauCell(){
 	Zero();
 }
 
-void CLandauCell::Zero(){
-	int i,j;
-	epsilonk=Pr=tau_K=0.0;
-	for(i=0;i<=NDIM;i++){
-		u[i]=M[i]=jB[i]=Pdens[i]=0.0;
-		for(j=0;j<=NDIM;j++){
-			SE[i][j]=0.0;
-		}
-	}
+void CIntegralCell::Zero(){
+	S=Q=rho=sigma=alphaZeta=alphaK=tauZta=tauK=gammaPr=Pi=epsilon=grad2Rho=0.0;
 }
 
-void CLandauCell::PrintInfo(){
-	printf("jB=(%g,%g,%g,%g), epsilonk=%g\n",jB[0],jB[1],jB[2],jB[3],epsilonk);
-	printf("u=(%g,%g,%g), T=%g, Pr=%g, cs2=%g, SoverB=%g, Kflow=(%g,%g,%g)\n",
-	u[1],u[2],u[3],T,Pr,cs2,SoverB,Kflow[1],Kflow[2],Kflow[3]);
-	printf("Pdens=(%g,%g,%g,%g)\n",Pdens[0],Pdens[1],Pdens[2],Pdens[3]);
+void CHalfIntegralCell::Zero(){
+	vx=Kx=0.0;
 }
 
-double CLandauCell::Grad2RhoB(){
-	double answer=0.0;
-	int i;
-	for(i=1;i<=NDIM;i++){
-		answer+=neighborPlus[i]->jB[0]+neighborMinus[i]->jB[0]-2.0*jB[0];
-	}
-	return answer/(DXYZ*DXYZ);
+void CHalfIntegralCell::PrintInfo(){
+	printf("vx=%g, Kx=%g\n",vx,Kx);
 }
 
-void CLandauCell::CalcGradRhoB(vector<double> &GradRhoB){
-	int i;
-	for(i=1;i<=NDIM;i++){
-		GradRhoB[i]=0.5*(neighborPlus[i]->jB[0]-neighborMinus[i]->jB[0])/DXYZ;
-	}
+void CIntegralCell::CalcGrad2Rho(){
+	double dxplus,dxminus,gradrhoplus,gradrhominus;
+	dxplus=0.5*neighorPlus->DelX+0.5*DelX;
+	dxminus=0.5*neighborMinus->DelX+0.5*DelX;
+	gradrhoplus=(neighborPlus->rho-rho)/dxplus;
+	gradrhominus=(rho-neighborMinus->rho)/dxminus;
+	gradrhoPlus=(gradrhoplus-gradrhominus)/DelX;
 }
 
-void CLandauCell::CalcDeliTij(vector<double> &DeliTij){
-	int i,j;
-	for(i=0;i<=NDIM;i++){
-		DeliTij[i]=0.0;
-		for(j=1;j<=NDIM;j++){			
-			DeliTij[i]+=0.5*(neighborPlus[j]->SE[i][j]-neighborMinus[j]->SE[i][j])/DXYZ;
-		}
-	}
+void CIntegralCell::UpdateBulkQuantities(){
+	eos->CalcEoS_of_rho_sdens(this);
+	eos->CalcEtaZetaK(this);
 }
 
-double CLandauCell::DelDotU(){
-	int i;
-	double answer=0.0;
-	for(i=1;i<=NDIM;i++){
-		answer+=neighborPlus[i]->u[i]-neighborMinus[i]->u[i];
-	}
+void CHalfIntegralCell::GetOmega(double &omega){
+	double DX=CMeshParameters::DX;
+	omega=0.5*(neighborPlus->Vx-neighborMinus->Vx)/DX;
+	omega=4.0*omega/3.0;
+}
+void CHalfIntegralCell::GetDelDotV(double &deldotv){
+	double DX=CMeshParameters::DX;
+	deldotv=0.5*(neighborPlus->Vx-neighborMinus->Vx)/DX;
+}
+
+
+void CHalfIntegralCell::CalcDxTxx(vector<double> &DxTxx){
+	DxTxx=0.5*(neighborPlus->SE[1][1]-neighborMinus->SE[1][1])/DXYZ;
+}
+
+double CLandauCell::DelDotU(CIntegralCell *newcell,CIntegralCell *oldcell){
+	double answer=newcell->neighborPlus->Vx-newcellneighborMinus->Vx;
+	answer+=oldcell->neighborPlus->Vx-oldcell->neighborMinus->Vx;
 	return answer/(2.0*DXYZ);
 }
 
-void CLandauCell::Calc_Kflow_target(){
-	int i;
-	for(i=1;i<=NDIM;i++){
-		Kflow_target[i]=-K*(neighborPlus[i]->T-neighborMinus[i]->T)/(2.0*DXYZ);
+void CHalfIntegralCell::Calc_Kflow_target(){
+		K_target=-K*(neighborPlus->T-neighborMinus->T)/(2.0*DXYZ);
 	}
-}
 
 double CLandauCell::CalcDivKFlow(){
 	int i;
@@ -102,32 +93,7 @@ double CLandauCell::CalcDivKFlow(){
 	return DivKFlow/(2.0*DXYZ);
 }
 
-double CLandauCell::DelDotJB(){
-	int i;
-	double answer=0.0;
-	for(i=1;i<=NDIM;i++){
-		answer+=neighborPlus[i]->jB[i]-neighborMinus[i]->jB[i];
-	}
-	return answer/(2.0*DXYZ);
-}
-
-void CLandauCell::CalcM(){
-	int i,j;
-	vector<double> GradRhoB(NDIM+1);
-	CalcGradRhoB(GradRhoB);
-	for(i=1;i<=NDIM;i++){
-		M[i]=0.0;
-		M[i]=-0.5*eos->kappa*jB[0]*jB[0]*(neighborPlus[i]->DelDotU()-neighborMinus[i]->DelDotU())/(2.0*DXYZ);
-		M[i]+=0.5*eos->kappa*jB[0]*DelDotU()*GradRhoB[i];
-		for(j=1;j<=NDIM;j++){
-			M[i]-=0.5*eos->kappa*jB[0]*GradRhoB[j]
-				*(neighborPlus[i]->u[j]-neighborMinus[i]->u[j]+neighborPlus[j]->u[i]-neighborMinus[j]->u[i])
-					/(2.0*DXYZ);
-		}
-	}
-}
-
-void CLandauCell::CalcEpsilonSE(){
+void CIntegralCell::CalcEpsilonSE(){
 	int i,j;
 	double grad2rhoB,epsilon,gradrhoB2=0.0,mass=eos->mass;
 	vector<double> gradrhoB(NDIM+1);
@@ -175,7 +141,7 @@ void CLandauCell::CalcEpsilonSE(){
 	}
 }
 
-void CLandauCell::Calc_pi_target(){
+void CHalfIntegralCell::Calc_pi_target(){
 	int i,j;
 	double deldotv=DelDotU();
 	for(i=1;i<NDIM;i++){
