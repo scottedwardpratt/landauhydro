@@ -87,7 +87,6 @@ void CEoS_VdW::CalcEoS_of_rho_epsilon(CIntegralCell *cell){
 	}
 	Pr=rho*T/(1.0-rho/rho0)-a*rho*rho;
 	SoverB=1.5*log(T)+log((rho0/rho)-1.0);
-	sdens=SoverB*rho;
 	cs2=((5.0*T/3.0)/((1.0-rho/rho0)*(1.0-rho/rho0))-2.0*a*rho)/mass;
 	
 	cell->T=T;

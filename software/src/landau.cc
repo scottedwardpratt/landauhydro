@@ -36,10 +36,11 @@ void CLandau::Evolve(){
 	while(newIntegralMesh->t+0.1*DT<TMAX){
 		CycleIntegralMeshes();
 		newIntegralMesh->t+=DT;
-		PropagateRhoSdens();
+		PropagateRhoSdensPI();
 		CycleHalfIntegralMeshes();
 		newHalfIntegralMesh->t+=DT;
 		PropagateVxKx();
+		newmesh->t=currentmesh->t+DELT;
 	}
 }
 
@@ -62,13 +63,6 @@ void CLandau::CycleHalfIntegralMeshes(){
 	newHalfIntegralMesh=oldHalfIntegralMesh;
 	oldHalIntegralMesh=himesh_tmp;
 }
-
-void CLandau::Propagate(){
-	PropagateRhoBPdens();
-	PropagateVxKx();
-	newmesh->t=currentmesh->t+DELT;
-}
-
 
 //-----------------------------------------------------------------
 
@@ -148,7 +142,7 @@ void CLandau::PropagateRhoSdensPI(){
 	for(int irk=0;irk<NRungeKuta;irk++){
 		PropagateSdens();
 		newIntegralMesh->UpdateQuantities();
-		PropagatePI();
+		PropagatePi();
 		newIntegralMesh->UpdateQuantities();
 	}
 }

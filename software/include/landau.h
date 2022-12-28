@@ -51,6 +51,7 @@ public:
 	void PropagateSdens();
 	void PropagatePI();
 	CLandau(CparameterMap *parmapset);
+	void CreateMeshes(double tset);
 };
 
 class CIntegralMesh{
@@ -87,7 +88,7 @@ public:
 	double x,Kx_target;
 	// These quantities refer to volume
 	double Delx;
-	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma;
+	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma,tau_eta;
 	double Pi,epsilon,epsilonk,grad2Rho;
 	double T,Pr,SoverB,cs2,eta,zeta;
 	vector<vector<double>> pi_shear;

@@ -8,7 +8,7 @@ double CMeshParameters::DX0=0.0;
 double CMeshParameters::DT=0.0;
 double CMeshParameters::TMAX=0.0;
 
-void CIntegralMesh(){
+void CIntegralMesh::CIntegraMesh(){
 	int ix; 
 	int NX=CMeshParameters::NX;
 	cell.resize(NX);
