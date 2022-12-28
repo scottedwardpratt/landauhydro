@@ -1,19 +1,17 @@
 #include "landau.h"
 #include "eos.h"
-CLandau *CLandauMesh::landau=NULL;
-CEoS *CLandauMesh::eos=NULL;
-int CLandauMesh::NX=1;
-int CLandauMesh::NY=1;
-int CLandauMesh::NZ=1;
-int CLandauMesh::NDIM=3;
+CLandau *CIntegralMesh::landau=NULL;
+CLandau *CHalfIntegralMesh::landau=NULL;
+CEoS *CIntegralMesh::eos=NULL;
+int CMeshParameters::NX=1;
+double CMeshParameters::DX0=0.0;
+double CMeshParameters::DT=0.0;
+double CMeshParameters::TMAX=0.0;
 
 void CIntegralMesh(){
 	int ix; 
 	int NX=CMeshParameters::NX;
-	double DX=CMeshParameters::DX;
-
 	cell.resize(NX);
-
 	for(ix=0;ix<NX;ix++){
 		if(ix>0)
 			cell[ix].neighborMinus=&cell[ix-1];
@@ -37,13 +35,13 @@ void CIntegralMesh::Initialize(double tset){
 	Drho=landau->parmap->getD("LANDAU_INIT_DRHO",0.1);
 	Dtemp=landau->parmap->getD("LANDAU_INIT_DTEMP",0.1);
 	t=tset;
-	Lx=NX*DX;
+	Lx=CMeshParameters::NX*CMeshParameters::DX0;
 	kx=2.0*PI*nx/Lx;
-	for(ix=0;ix<NX;ix++){
-		x=DX*(ix+0.5);
+	for(ix=0;ix<CMeshParameters::NX;ix++){
+		x=CMeshParameters::DX0*(ix+0.5);
 		c=&cell[ix];
 		c->Zero();
-		c->rho=rho00*(1.0+Drho*cos(kx*x));
+		c->rho=rho0*(1.0+Drho*cos(kx*x));
 		grad2rhoB=-kx*kx*Drho*rho0*cos(kx*x);
 		c->T=T0*(1.0-Dtemp*cos(kx*x));
 		eos->CalcEoS_of_rho_T(c);
@@ -54,25 +52,21 @@ void CIntegralMesh::Initialize(double tset){
 void CIntegralMesh::UpdateQuantities(){
 	int ix,iy,iz,i;
 	CIntegralCell *c;
-	for(ix=0;ix<NX;ix++){
+	for(ix=0;ix<CMeshParameters::NX;ix++){
 		cell[ix]->UpdateBulkQuantities();
 	}
-	for(ix=0;ix<NX;ix++){
+	for(ix=0;ix<CMeshParameters::NX;ix++){
 		c=&cell[ix];
 		c->Calc_Kflow_target();
 		c->Calc_pi_target();
 	}
 }
 
-void CIntegralMesh::Zero(){
-	
-}
-
 void CIntegralMesh::CalculateBtotStot(){
 	double Btot=0.0,Stot=0.0;
 	int ix;
 	CIntegralCell *c;
-	for(ix=0;ix<NX;ix++){
+	for(ix=0;ix<CMeshParameters::NX;ix++){
 		c=&(cell[ix]);
 		Btot+=c->rho*cell->Delx;
 		Stot+=c->SoverB*c->rho*cell->Delx;
@@ -86,10 +80,7 @@ void CIntegralMesh::CalculateBtotStot(){
 CHalfIntegralMesh::CHalfIntegralMesh(){
 	int ix; 
 	int NX=CMeshParameters::NX;
-	double DX=CMeshParameters::DX;
-
 	cell.resize(NX);
-
 	for(ix=0;ix<NX;ix++){
 		if(ix>0)
 			cell[ix].neighborMinus=&cell[ix-1];
@@ -108,11 +99,11 @@ void CHalfIntegralMesh::Initialize(double tset){
 	double Dvel,Lx,kx;
 	int ix,nx=1;
 	t=tset;
-	Lx=NX*DX;
+	Lx=CMeshParameters::NX*CMeshParameters::DX0;
 	Dvel=landau->parmap->getD("LANDAU_INIT_DVEL",0.0);
 	kx=2.0*PI*nx/Lx;
 	for(ix=0;ix<NX;ix++){
-		x=DX*(ix+0.5);
+		x=CMeshParameters::DX0*(ix+0.5);
 		c=&cell[ix];
 		c->vx=Dvel*sin(kx*x);
 		c->Kx=0.0;

@@ -5,7 +5,7 @@ using namespace std;
 
 CLandau::CLandau(CparameterMap *parmapset){
 	parmap=parmapset;
-	CMeshParameters::DX=parmap->getD("LANDAU_DX",1);
+	CMeshParameters::DX0=parmap->getD("LANDAU_DX",1);
 	CMeshParameters::NX=parmap->getI("LANDAU_NX",100);
 	CMeshParameters::DT=parmap->getD("LANDAU_DT",1);
 	CMeshParameters::TMAX=parmap->getD("LANDAU_TMAX",1);
@@ -25,8 +25,7 @@ CLandau::CLandau(CparameterMap *parmapset){
 		printf("LANDAU_EOS=%s, not recognized\n",EOSDEF.c_str());
 		exit(1);
 	}
-	CLandauCell::eos=eos;
-	CIntegralMesh::eos=eos;
+	CIntegralCell::eos=eos;
 	
 	CIntegralMesh::landau=CHalfIntegralMesh::landau=this;
 	CreateMeshes(parmap->getD("LANDAU_TIME0",0.0));

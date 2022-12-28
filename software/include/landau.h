@@ -23,7 +23,7 @@ class CHalfIntegralCell;
 class CMeshParameters{
 public:
 	static int NX;
-	static double DX;
+	static double DX0;
 	static double DT;
 	static double TMAX;
 };
@@ -33,6 +33,7 @@ public:
 	CparameterMap *parmap;
 	static CEoS *eos;
 	string output_dirname;
+	int NRungeKutta;
 	
 	CIntegralMesh *newIntegralMesh,*oldIntegralMesh;
 	CHalfIntegralMesh *newHalfIntegralMesh,*oldHalfIntegralMesh;
@@ -57,7 +58,7 @@ public:
 	static CLandau *landau;
 	static CEoS *eos;
 	double t;
-	vector<CHalfIntegralCell> *cell;
+	vector<CIntegralCell> *cell;
 	CIntegralMesh();
 	void Initialize(double t0);
 	void UpdateQuantities();
@@ -89,7 +90,8 @@ public:
 	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma;
 	double Pi,epsilon,epsilonk,grad2Rho;
 	double T,Pr,SoverB,cs2,eta,zeta;
-	vector<double> pi_shear;
+	vector<vector<double>> pi_shear;
+	vector<vector<double>> SE;
 	double pi_bulk;
 	//
 	void Zero();
