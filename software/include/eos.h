@@ -31,11 +31,12 @@ public:
 		// gives quantities in terms of epsilon and rhoB
 		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;
 	}
+	virtual void CalcEoS_of_rho_sdens(CIntegralCell *cell){ // Calculates quantities in terms of cell->epsilon and cell->sdens
+		// gives quantities in terms of epsilon and rhoB
+		cell->T=cell->Pr=cell->SoverB=cell->cs2=0.0;
+	}
 	virtual void CalcEoS_of_rho_T(CIntegralCell *cell){
 		cell->epsilonk=cell->Pr=cell->SoverB=cell->cs2=cell->eta=cell->zeta=0.0;
-	}
-	virtual void CalcEoS_of_rho_sdens(CIntegralCell *cell){
-		cell->T=cell->Pr=cell->epsilon=cell->cs2=0.0;
 	}
 };
 
@@ -53,6 +54,7 @@ public:
 	CEoS_VdW(CparameterMap *parmapin);
 	void CalcEoS_of_rho_epsilon(CIntegralCell *cell);
 	void CalcEoS_of_rho_T(CIntegralCell *cell);
+	void CalcEoS_of_rho_sdens(CIntegralCell *cell);
 };
 
 class CEoS_Scott : public CEoS{
@@ -62,6 +64,7 @@ public:
 	CEoS_Scott(CparameterMap *parmapin);
 	void CalcEoS_of_rho_epsilon(CIntegralCell *cell);
 	void CalcEoS_of_rho_T(CIntegralCell *cell);
+	void CalcEoS_of_rho_sdens(CIntegralCell *cell);
 };
 
 #endif

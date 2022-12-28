@@ -40,7 +40,7 @@ void CLandau::Evolve(){
 		CycleHalfIntegralMeshes();
 		newHalfIntegralMesh->t+=DT;
 		PropagateVxKx();
-		newmesh->t=currentmesh->t+DELT;
+		newIntegralMesh->t=currentIntegralMesh->t+CMeshParameters::DELT;
 	}
 }
 
@@ -72,12 +72,12 @@ void CLandau::PropagateRho(){
 		jx=ix+1;
 		if(jx==NX)
 			jx=0;
-		newIntegralMesh->cell[ix].DelX=oldIntegralMesh->cell[ix].DelX
-			+DT*(newHalfIntegralMesh->cell[jx].Vx-newHalIntegralMesh->cell[ix].Vx);
-		newIntegralMesh->cell[ix].rho=oldIntegralMesh->cell[ix].Q/newIntegralMesh->cell[ix].Delx;
+		newIntegralMesh->cell[ix]->DelX=oldIntegralMesh->cell[ix]->DelX
+			+DT*(newHalfIntegralMesh->cell[jx].Vx-newHalIntegralMesh->cell[ix]->Vx);
+		newIntegralMesh->cell[ix]->rho=oldIntegralMesh->cell[ix]->Q/newIntegralMesh->cell[ix]->Delx;
 	}
 	for(ix=0;ix<NX;ix++){
-		newIntegralMesh->cell[ix].CalcGrad2Rho();
+		newIntegralMesh->cell[ix]->CalcGrad2Rho();
 	}
 }
 
@@ -93,15 +93,15 @@ void CLandau::PropagateSDens(){
 		
 		oldS=oldcell->S;
 		newcell->S=oldS
-			+DT*(newHalfIntegralMesh->cell[jx].Kx-newHalIntegralMesh->cell[ix].Kx)/(0.5*(newcell->T+oldcell->T));
+			+DT*(newHalfIntegralMesh->cell[jx].Kx-newHalIntegralMesh->cell[ix]->Kx)/(0.5*(newcell->T+oldcell->T));
 		
-		newEta=newIntegralMesh->cell[ix].eta;
-		newDelX=newIntegralMesh->cell[ix].DelX;
-		newPi=newIntegralMesh->cell[ix].Pi;
-		oldEta=oldIntegralMesh->cell[ix].eta;
-		oldDelX=oldIntegralMesh->cell[ix].DelX;
-		oldPi=oldIntegralMesh->cell[ix].Pi
-		newIntegralMesh->cell[ix].S=oldIntegralMesh->cell[ix].S
+		newEta=newIntegralMesh->cell[ix]->eta;
+		newDelX=newIntegralMesh->cell[ix]->DelX;
+		newPi=newIntegralMesh->cell[ix]->Pi;
+		oldEta=oldIntegralMesh->cell[ix]->eta;
+		oldDelX=oldIntegralMesh->cell[ix]->DelX;
+		oldPi=oldIntegralMesh->cell[ix]->Pi
+		newIntegralMesh->cell[ix]->S=oldIntegralMesh->cell[ix]->S
 			+0.5*DT*((newDelX*newPi*newPi/newEta)+(oldDelX*oldPi*oldPi/oldEta));
 	}
 }
@@ -195,9 +195,11 @@ void CLandau::PropagateVxKx(){
 	
 }
 
+/*
 void CLandau::PrintInfo(){
 	int ix,iy,iz;
-	CLandauCell *cnew,*cold,*ccurrent;
+	CIntegalCell *cnew,*cold;
+	CHalfIntegralCell *ccurrent;
 	printf("----------TIME=%g -------------\n",newmesh->t);
 	for(ix=0;ix<NX;ix++){
 		for(iy=0;iy<NY;iy++){
@@ -284,25 +286,5 @@ void CLandau::WriteData(){
 	}
 	fclose(fptr);
 }
+*/
 
-void CLandau::AverageMeshes_OddQuantities(double weight){
-	int ix,iy,iz,i;
-	CLandauCell *c,*newc,*oldc;
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				c=&(currentmesh->cell[ix][iy][iz]);
-				oldc=&(oldmesh->cell[ix][iy][iz]);
-				newc=&(newmesh->cell[ix][iy][iz]);
-				for(i=1;i<=NDIM;i++){
-					c->Pdens[i]=(1.0-weight)*c->Pdens[i]+0.5*weight*(oldc->Pdens[i]+newc->Pdens[i]);
-					c->jB[i]=(1.0-weight)*c->jB[i]+0.5*weight*(oldc->jB[i]+newc->jB[i]);
-				}
-				for(i=1;i<=NDIM;i++){
-					c->Kflow[i]=(1.0-weight)*c->Kflow[i]+0.5*weight*(oldc->Kflow[i]+newc->Kflow[i]);
-				}
-			}
-		}
-	}	
-	currentmesh->UpdateQuantities();	
-}

@@ -153,6 +153,10 @@ void CHalfIntegralCell::Calc_pi_shear_target(){
 	}
 }
 
+void CHalfIntegralCell::Zero(){
+	vx=Kx=0.0;
+}
+
 
 void CHalfIntegralCell::PrintInfo(){
 	printf("vx=%g, Kx=%g\n",vx,Kx);

@@ -107,7 +107,7 @@ void CEoS_VdW::CalcEoS_of_rho_sdens(CIntegralCell *cell){
 	double rho=cell->rho;
 	double x=rho/rho0;
 	double SoverB=cell->sdens/rho;
-	double cs2,Pr,sdens,T;
+	double T;
 	T=pow((x/(1.0-x))*exp(SoverB),2.0/3.0);
 	cell->Pr=rho*T/(1.0-rho/rho0)-a*rho*rho;
 	SoverB=1.5*log(T)+log((rho0/rho)-1.0);

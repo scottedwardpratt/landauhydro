@@ -59,7 +59,7 @@ public:
 	static CLandau *landau;
 	static CEoS *eos;
 	double t;
-	vector<CIntegralCell> *cell;
+	vector<CIntegralCell *> cell;
 	CIntegralMesh();
 	void Initialize(double t0);
 	void UpdateQuantities();
@@ -71,7 +71,7 @@ class CHalfIntegralMesh{
 public:
 	static CLandau *landau;
 	double t;
-	vector<CIntegralCell> *cell;
+	vector<CHalfIntegralCell *> cell;
 	CHalfIntegralMesh();
 	void Initialize(double test);
 	void UpdateQuantities();
@@ -88,16 +88,17 @@ public:
 	double x,Kx_target;
 	// These quantities refer to volume
 	double Delx;
-	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma,tau_eta;
+	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gamma,tau_zeta,tau_gamma,tau_eta,sdens;
 	double Pi,epsilon,epsilonk,grad2Rho;
-	double T,Pr,SoverB,cs2,eta,zeta;
+	double T,Pr,SoverB,cs2,eta,zeta,gamma;
 	vector<vector<double>> pi_shear;
 	vector<vector<double>> SE;
 	double pi_bulk;
 	//
 	void Zero();
 	void CalcGrad2Rho();
-	void UpdateBulkQuantities();
+	void Calc_Kx_target();
+	void UpdateQuantities();
 	void PrintInfo();
 };
 
@@ -113,6 +114,9 @@ public:
 	void GetOmega(double &omega); // omega=partial_iv_j+partial_jv_i-(2/3)del.v*delta_ij. o
 	void GetDelDotV();
 	void PrintInfo();
+	void Calc_pi_target();
+	CHalfIntegralCell *neighborPlus;
+	void Zero();
 };
 
 #endif
