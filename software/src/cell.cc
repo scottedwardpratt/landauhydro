@@ -15,6 +15,7 @@ CIntegralCell::CIntegralCell(){
 
 
 void CIntegralCell::Zero(){
+	int i,j;
 	S=Q=rho=sigma=alphaZeta=alphaK=tauZta=tauK=gammaPr=Pi=epsilon=grad2Rho=Kx_target=0.0;
 	alpha_eta=alpha_zeta=alpha_gamma=tau_zeta=tau_gamma=0.0;
 	for(i=0;i<4;i++){

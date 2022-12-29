@@ -78,7 +78,7 @@ void CLandau::PropagateRhoSdensPI(){
 		newIntegralMesh->cell[ix]->rho=oldIntegralMesh->cell[ix]->Q/newIntegralMesh->cell[ix]->Delx;
 	}
 	for(ix=0;ix<NX;ix++){
-		newIntegralMesh->cell[ix]->Calcgrad2Rho();
+		newIntegralMesh->cell[ix]->CalcGrad2Rho();
 	}
 }
 
