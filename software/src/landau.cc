@@ -109,17 +109,19 @@ void CLandau::PropagateSdens(){
 }
 
 void CLandau::PropagatePi(){
-	int ix,jx,NX=CMeshParameters::NX,DT=CMeshParameters::DT;
-	double oldPi,newDelx,oldDelx,newEta,oldEta,tmpterm,omega,tau_eta,alpha_eta;
-	CIntegralCell *oldcell,*newcell;
+	int ix,jx,NX=CMeshParameters::NX;
+	//double DT=CMeshParameters::DT;
+	//double oldPi,xnewEta,oldEta;
+	//double tau_eta,alpha_eta;
+	//CIntegralCell *oldcell,*newcell;
 	for(ix=0;ix<NX;ix++){
 		jx=ix+1;
 		if(jx==NX)
 			jx=0;
-		oldcell=oldIntegralMesh->cell[ix];
-		newcell=newIntegralMesh->cell[ix];
-		tau_eta=0.5*(oldcell->tau_eta+newcell->tau_eta);
-		alpha_eta=0.5*(oldcell->alpha_eta+newcell->alpha_eta);
+		//oldcell=oldIntegralMesh->cell[ix];
+		//newcell=newIntegralMesh->cell[ix];
+		//tau_eta=0.5*(oldcell->tau_eta+newcell->tau_eta);
+		//alpha_eta=0.5*(oldcell->alpha_eta+newcell->alpha_eta);
 		newHalfIntegralMesh->cell[jx]->GetOmega();		
 	}
 }
@@ -128,7 +130,7 @@ void CLandau::PropagateVxKx(){
 	int ix,jx,NX=CMeshParameters::NX;
 	CIntegralCell *bulkcella,*bulkcellb;
 	CHalfIntegralCell *oldcell,*newcell;
-	double gradP,gradT,tau_gamma,alpha_gamma,tmpterm;
+	double gradP,gradT,tau_gmma,alpha_gmma,tmpterm;
 	// First calc Vx
 	for(ix=0;ix<NX;ix++){
 		jx=ix-1;
@@ -140,10 +142,10 @@ void CLandau::PropagateVxKx(){
 		bulkcella=newIntegralMesh->cell[ix];
 		
 		gradP=bulkcellb->Pr-bulkcella->Pr;
-		gradP+=0.5*eos->kappa*(bulkcellb->grad2Rho-bulkcella->grad2Rho);
+		gradP+=0.5*CEos::kappa*(bulkcellb->grad2Rho-bulkcella->grad2Rho);
 		gradP=gradP/(0.5*(bulkcella->Delx+bulkcellb->Delx));
 		newcell->vx=oldcell->vx
-			-gradP/(eos->mass*0.5*(bulkcella->rho+bulkcellb->rho));
+			-gradP/(CEos::mass*0.5*(bulkcella->rho+bulkcellb->rho));
 	}
 	// Now calc Kx
 	for(ix=0;ix<NX;ix++){
@@ -155,19 +157,17 @@ void CLandau::PropagateVxKx(){
 		bulkcellb=newIntegralMesh->cell[jx];
 		bulkcella=newIntegralMesh->cell[ix];
 		
-		oldKx=oldcell
-		
 		alpha_K_factor=0.5*(bulkcella->alpha_K_factor+bulkcellb->alpha_K_factor);
 		gradT=2.0*(bulkcellb->T-bulkcella->T)/(bulkcella->Delx+bulkcellb->Delx);		
 		
 		
-		tau_gamma=0.5*(bulkcella->tau_gamma+bulkcellb->tau_gamma);
-		gamma=0.5*(bulkcella->gamma+bulkcellb->gamma);
-		alpha_gamma=0.5*(bulkcella->alpha_gamma+bulkcellb->alpha_gamma);
-		tmpterm=0.5*((1.0/tau_alpha)+alpha_gamma));
+		tau_gmma=0.5*(bulkcella->tau_gmma+bulkcellb->tau_gmma);
+		gmma=0.5*(bulkcella->gmma+bulkcellb->gmma);
+		alpha_gmma=0.5*(bulkcella->alpha_gmma+bulkcellb->alpha_gmma);
+		tmpterm=0.5*((1.0/tau_alpha)+alpha_gmma));
 	
-		Denom=(1.0/DT)+tmpterm;
-		newcell->Kx=oldcell->Kx*((1.0/tau_alpha)-tmpterm)+gamma*gradT/tau_gamma;
+		Denom=(1.0/CMeshParameters::DT)+tmpterm;
+		newcell->Kx=oldcell->Kx*((1.0/tau_alpha)-tmpterm)+gmma*gradT/tau_gmma;
 		newcell->Kx=newcell->Kx/Denom;		
 	}
 	

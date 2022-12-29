@@ -1,6 +1,13 @@
 #include "eos.h"
 #include "msu_commonutils/misc.h"
 
+double CEoS::kappa=0.0;
+double CEoS::mass=0.0;
+double CEoS::Kfactor=0.0;
+double CEoS::etafactor=0.0;
+double CEoS::zetafactor=0.0;
+double CEoS::gmma=0.0;
+
 CEoS::CEoS(CparameterMap *parmapset){
 	parmap=parmapset;  
 	kappa=parmap->getD("EOS_KAPPA",0.0);
@@ -182,9 +189,9 @@ void CEoS_Scott::CalcEoS_of_rho_T(CIntegralCell *cell){
 void CEoS::CalcEtaZetaK(CIntegralCell *cell){
 	double rho=cell->rho,T=cell->T;
 
-	cell->tau_gamma=Kfactor*sqrt(mass/T)/rho;
-	cell->alpha_gamma=sqrt(rho*T*T*T);
-	cell->gamma=(21.0/4.0)*(T/mass)*cell->tau_gamma;
+	cell->tau_gmma=Kfactor*sqrt(mass/T)/rho;
+	cell->alpha_gmma=sqrt(rho*T*T*T);
+	cell->gmma=(21.0/4.0)*(T/mass)*cell->tau_gmma;
 
 	cell->tau_eta=etafactor*sqrt(mass/T)/rho;
 	cell->alpha_eta=(4.0/15.0)*sqrt(rho*rho*T*T);

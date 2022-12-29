@@ -45,7 +45,7 @@ void CIntegralMesh::Initialize(double tset){
 		c->rho=rho0*(1.0+Drho*cos(kx*x));
 		//grad2rho=-kx*kx*Drho*rho0*cos(kx*x);
 		c->T=T0*(1.0-Dtemp*cos(kx*x));
-		eos->CalcEoS_of_rho_T(c);
+		CEos::CalcEoS_of_rho_T(c);
 	}
 }
 

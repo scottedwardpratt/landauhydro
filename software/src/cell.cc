@@ -16,8 +16,8 @@ CIntegralCell::CIntegralCell(){
 
 void CIntegralCell::Zero(){
 	int i,j;
-	S=Q=rho=sigma=alphaZeta=alphaK=tauZta=tauK=gammaPr=Pi=epsilon=grad2Rho=Kx_target=0.0;
-	alpha_eta=alpha_zeta=alpha_gamma=tau_zeta=tau_gamma=0.0;
+	S=Q=rho=sigma=alpha_Zeta=alpha_Kx=tau_Zeta=tau_K=gmma_Pr=Pi=epsilon=grad2Rho=Kx_target=0.0;
+	alpha_eta=alpha_zeta=alpha_gmma=tau_zeta=tau_gmma=0.0;
 	for(i=0;i<4;i++){
 		for(j=0;j<4;j++){
 			SE[i][j]=0.0;
@@ -30,24 +30,24 @@ void CIntegralCell::Zero(){
 
 void CIntegralCell::CalcEpsilonSE(){
 	int i,j;
-	double grad2rho,epsilon,gradrho2=0.0,mass=eos->mass;
+	double grad2rho,epsilon,gradrho2=0.0,mass=CEos::mass;
 	vector<double> gradrho(NDIM+1);
 	epsilon=Pdens[0];
 	printf("-------\nix=%d: before, epsilon=%g\n",ix,epsilon);
 	for(i=1;i<=NDIM;i++)
-		epsilon-=(M[i]*u[i]+0.5*eos->mass*rho*u[i]*u[i]);
+		epsilon-=(M[i]*u[i]+0.5*CEos::mass*rho*u[i]*u[i]);
 	printf("now, epsilon=%g\n",epsilon);
 	grad2rho=Grad2RhoB();
 	CalcGradRhoB(gradrho);
 	for(i=1;i<=NDIM;i++){
 		gradrho2+=gradrho[i]*gradrho[i];
 	}
-	epsilonk=epsilon+0.5*eos->kappa*rho*grad2rho;
+	epsilonk=epsilon+0.5*CEos::kappa*rho*grad2rho;
 	if(epsilonk<0.0){
 		printf("Yikes!!! epsilon=%g, epsilonk=%g, rho=%g\n",epsilon,epsilonk,rho);
 		exit(1);
 	}
-	eos->CalcEoS_of_rho_epsilon(this);
+	CEos::CalcEoS_of_rho_epsilon(this);
 	if(T<Tlowest){
 		Tlowest=T;
 		if(Tlowest<0.0){
@@ -61,9 +61,9 @@ void CIntegralCell::CalcEpsilonSE(){
 	for(i=1;i<=NDIM;i++){
 		for(j=1;j<=NDIM;j++){
 			SE[i][j]=pi_shear[i][j];
-			SE[i][j]+=eos->kappa*gradrho[i]*gradrho[j];
+			SE[i][j]+=CEos::kappa*gradrho[i]*gradrho[j];
 			if(i==j)
-				SE[i][j]+=Pr-eos->kappa*(rho*grad2rho+0.5*gradrho2);
+				SE[i][j]+=Pr-CEos::kappa*(rho*grad2rho+0.5*gradrho2);
 			SE[i][j]+=mass*rho*u[i]*u[j];
 		}
 	}
@@ -86,8 +86,8 @@ void CIntegralCell::CalcGrad2Rho(){
 }
 
 void CIntegralCell::UpdateBulkQuantities(){
-	eos->CalcEoS_of_rho_sdens(this);
-	eos->CalcEtaZetaK(this);
+	CEos::CalcEoS_of_rho_sdens(this);
+	CEos::CalcEtaZetaK(this);
 }
 
 // Half-Integral Cell
