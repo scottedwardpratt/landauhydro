@@ -49,7 +49,7 @@ public:
 	void PropagateRhoSdensPI();
 	void PropagateVxKx();
 	void PropagateSdens();
-	void PropagatePI();
+	void PropagatePi();
 	CLandau(CparameterMap *parmapset);
 	void CreateMeshes(double tset);
 };
@@ -60,7 +60,7 @@ public:
 	static CEoS *eos;
 	double t;
 	vector<CIntegralCell *> cell;
-	CIntegralMesh();
+	CIntegralMesh(double tset);
 	void Initialize(double t0);
 	void UpdateQuantities();
 	void CalculateBtotStot();
@@ -72,7 +72,7 @@ public:
 	static CLandau *landau;
 	double t;
 	vector<CHalfIntegralCell *> cell;
-	CHalfIntegralMesh();
+	CHalfIntegralMesh(double tset);
 	void Initialize(double test);
 	void UpdateQuantities();
 	void Zero();
@@ -104,6 +104,7 @@ public:
 
 class CHalfIntegralCell{
 public:
+	double omega,deldotv;
 	static CLandau *landau;
 	static CEoS *eos;
 	// These quantities refer to lower boundaries
@@ -111,7 +112,7 @@ public:
 	// These quantities refer to volume
 	vector<double> pi_shear_target;
 	double pi_bulk_target;
-	void GetOmega(double &omega); // omega=partial_iv_j+partial_jv_i-(2/3)del.v*delta_ij. o
+	void GetOmega(); // omega=partial_iv_j+partial_jv_i-(2/3)del.v*delta_ij. o
 	void GetDelDotV();
 	void PrintInfo();
 	void Calc_pi_target();

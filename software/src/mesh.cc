@@ -8,7 +8,8 @@ double CMeshParameters::DX0=0.0;
 double CMeshParameters::DT=0.0;
 double CMeshParameters::TMAX=0.0;
 
-CIntegralMesh::CIntegralMesh(){
+CIntegralMesh::CIntegralMesh(double tset){
+	t=tset;
 	int ix; 
 	int NX=CMeshParameters::NX;
 	cell.resize(NX);
@@ -75,7 +76,8 @@ void CIntegralMesh::CalculateBtotStot(){
 
 ///////////////////////
 
-CHalfIntegralMesh::CHalfIntegralMesh(){
+CHalfIntegralMesh::CHalfIntegralMesh(double tset){
+	t=tset;
 	int ix; 
 	int NX=CMeshParameters::NX;
 	cell.resize(NX);

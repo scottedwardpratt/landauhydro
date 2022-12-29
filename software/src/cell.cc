@@ -108,12 +108,12 @@ void CHalfIntegralCell::Zero(){
 	}
 }
 
-void CHalfIntegralCell::GetOmega(double &omega){
+void CHalfIntegralCell::GetOmega(){
 	omega=0.5*(neighborPlus->Vx-neighborMinus->Vx)/Delx;
 	omega=4.0*omega/3.0;
 }
 
-void CHalfIntegralCell::GetDelDotV(double &deldotv){
+void CHalfIntegralCell::GetDelDotV(){
 	deldotv=0.5*(neighborPlus->Vx-neighborMinus->Vx)/Delx;
 }
 
