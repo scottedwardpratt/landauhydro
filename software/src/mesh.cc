@@ -45,7 +45,7 @@ void CIntegralMesh::Initialize(double tset){
 		c->rho=rho0*(1.0+Drho*cos(kx*x));
 		//grad2rho=-kx*kx*Drho*rho0*cos(kx*x);
 		c->T=T0*(1.0-Dtemp*cos(kx*x));
-		CEos::CalcEoS_of_rho_T(c);
+		eos->CalcEoS_of_rho_T(c);
 	}
 }
 
@@ -101,7 +101,7 @@ void CHalfIntegralMesh::Initialize(double tset){
 	for(ix=0;ix<CMeshParameters::NX;ix++){
 		c=cell[ix];
 		x=ix*CMeshParameters::DX0;
-		c->vx=Dvel*sin(kx*x);
+		c->Vx=Dvel*sin(kx*x);
 		c->Kx=0.0;
 	}		
 }
@@ -109,6 +109,6 @@ void CHalfIntegralMesh::Initialize(double tset){
 void CHalfIntegralMesh::UpdateQuantities(){
 	int ix;
 	for(ix=0;ix<CMeshParameters::NX;ix++){
-		cell[ix]->Calc_pi_target();
+		cell[ix]->Calc_pi_shear_target();
 	}
 }

@@ -25,22 +25,37 @@ CLandau::CLandau(CparameterMap *parmapset){
 		printf("LANDAU_EOS=%s, not recognized\n",EOSDEF.c_str());
 		exit(1);
 	}
-	CIntegralCell::eos=eos;
+	CIntegralCell::eos=CIntegralMesh::eos=eos;
 	
 	CIntegralMesh::landau=CHalfIntegralMesh::landau=this;
 	CreateMeshes(parmap->getD("LANDAU_TIME0",0.0));
 }
 
 void CLandau::Evolve(){
+	int irk,nrk=parmap->getD("LANDAU_NRUNGEKUTTA",2);
 	double DT=CMeshParameters::DT,TMAX=CMeshParameters::TMAX;
 	while(newIntegralMesh->t+0.1*DT<TMAX){
+
 		CycleIntegralMeshes();
-		newIntegralMesh->t+=DT;
-		PropagateRhoSdensPI();
+		newIntegralMesh->t+=DT;	
+		// SDens is altered by entropy production, which requires knowing Pi and temperature at half-integral times
+		for(irk=0;irk<nrk;irk++){
+			PropagateRho();
+			if(irk==0){
+				EstimatePiS();
+				CalcBulkQuantities();
+			}
+			PropagateSdens();
+			CalcBulkQuantities();
+			CalcPiTarget();
+			CalcKxTarget();
+			PropagatePi();
+		}
+
 		CycleHalfIntegralMeshes();
-		newHalfIntegralMesh->t+=DT;
+		newHalfIntegralMesh->t+=DT;	
 		PropagateVxKx();
-		newIntegralMesh->t=oldIntegralMesh->t+CMeshParameters::DT;
+
 	}
 }
 
@@ -58,6 +73,7 @@ void CLandau::CycleIntegralMeshes(){
 	newIntegralMesh=oldIntegralMesh;
 	oldIntegralMesh=imesh_tmp;
 }
+
 void CLandau::CycleHalfIntegralMeshes(){
 	CHalfIntegralMesh *himesh_tmp;
 	himesh_tmp=newHalfIntegralMesh;
@@ -67,14 +83,31 @@ void CLandau::CycleHalfIntegralMeshes(){
 
 //-----------------------------------------------------------------
 
-void CLandau::PropagateRhoSdensPI(){
+void CLandau::EstimatePiS(){
+	int ix,NX=CMeshParameters::NX,jx,kx;
+	CIntegralCell *oldcell,*newcell;
+	for(ix=0;ix<NX;ix++){
+		oldcell=oldIntegralMesh->cell[ix];
+		newcell=newIntegralMesh->cell[ix];
+		newcell->sdens=2.0*oldcell->sdens-newcell->sdens;
+		for(jx=1;jx<4;jx++){
+			newcell->pi_shear[jx][jx]=2.0*oldcell->pi_shear[jx][jx]-newcell->pi_shear[jx][jx];
+			for(kx=jx+1;kx<4;kx++){
+				newcell->pi_shear[ix][jx]=2.0*oldcell->pi_shear[ix][jx]-newcell->pi_shear[ix][jx];
+				newcell->pi_shear[jx][ix]=newcell->pi_shear[ix][jx];
+			}
+		}
+	}
+}
+
+void CLandau::PropagateRho(){
 	int ix,jx,NX=CMeshParameters::NX,DT=CMeshParameters::DT;
 	for(ix=0;ix<NX;ix++){
 		jx=ix+1;
 		if(jx==NX)
 			jx=0;
 		newIntegralMesh->cell[ix]->Delx=oldIntegralMesh->cell[ix]->Delx
-			+DT*(newHalfIntegralMesh->cell[jx]->vx-newHalfIntegralMesh->cell[ix]->vx);
+			+DT*(newHalfIntegralMesh->cell[jx]->Vx-newHalfIntegralMesh->cell[ix]->Vx);
 		newIntegralMesh->cell[ix]->rho=oldIntegralMesh->cell[ix]->Q/newIntegralMesh->cell[ix]->Delx;
 	}
 	for(ix=0;ix<NX;ix++){
@@ -83,46 +116,69 @@ void CLandau::PropagateRhoSdensPI(){
 }
 
 void CLandau::PropagateSdens(){
-	int ix,jx,NX=CMeshParameters::NX,DT=CMeshParameters::DT;
-	double oldS,newPi,oldPi,newDelx,oldDelx,newEta,oldEta;
+	int ix,jx,j,k,NX=CMeshParameters::NX,DT=CMeshParameters::DT;
+	double eta,T,delx,pijk;
 	CIntegralCell *oldcell,*newcell;
+	CHalfIntegralCell *halfcell,*halfcellplus;
 	for(ix=0;ix<NX;ix++){
 		jx=ix+1;
 		if(jx==NX)
 			jx=0;
 		oldcell=oldIntegralMesh->cell[ix];
 		newcell=newIntegralMesh->cell[ix];
+		halfcell=newHalfIntegralMesh->cell[ix];
+		halfcellplus=halfcell->neighborPlus;
 		
-		oldS=oldcell->S;
-		newcell->S=oldS
-			+DT*(newHalfIntegralMesh->cell[jx]->Kx-newHalfIntegralMesh->cell[ix]->Kx)/(0.5*(newcell->T+oldcell->T));
-		
-		newEta=newIntegralMesh->cell[ix]->eta;
-		newDelx=newIntegralMesh->cell[ix]->Delx;
-		newPi=newIntegralMesh->cell[ix]->Pi;
-		oldEta=oldIntegralMesh->cell[ix]->eta;
-		oldDelx=oldIntegralMesh->cell[ix]->Delx;
-		oldPi=oldIntegralMesh->cell[ix]->Pi;
-		newIntegralMesh->cell[ix]->S=oldIntegralMesh->cell[ix]->S
-			+0.5*DT*((newDelx*newPi*newPi/newEta)+(oldDelx*oldPi*oldPi/oldEta));
+		eta=0.5*(newcell->eta+oldcell->eta);
+		T=0.5*(newcell->T+oldcell->T);
+		delx=0.5*(newcell->Delx+oldcell->Delx);
+	
+		newcell->S=oldcell->S+DT*(halfcellplus->Kx-halfcell->Kx)/T;
+		for(j=1;j<4;j++){
+			for(k=1;k<4;k++){
+				pijk=0.5*(newcell->pi_shear[j][k]+oldcell->pi_shear[j][k]);
+				newcell->S+=DT*delx*pijk*pijk/eta;
+			}
+		}
 	}
 }
 
 void CLandau::PropagatePi(){
-	int ix,jx,NX=CMeshParameters::NX;
-	//double DT=CMeshParameters::DT;
-	//double oldPi,xnewEta,oldEta;
-	//double tau_eta,alpha_eta;
-	//CIntegralCell *oldcell,*newcell;
+	int ix,NX=CMeshParameters::NX,j,k;
+	double DT=CMeshParameters::DT;
+	double eta,tau_eta,alpha_eta,deldotv,delx,pipi,pitarget;
+	CIntegralCell *oldcell,*newcell;
+	CHalfIntegralCell *halfcell;
+	
 	for(ix=0;ix<NX;ix++){
-		jx=ix+1;
-		if(jx==NX)
-			jx=0;
-		//oldcell=oldIntegralMesh->cell[ix];
-		//newcell=newIntegralMesh->cell[ix];
-		//tau_eta=0.5*(oldcell->tau_eta+newcell->tau_eta);
-		//alpha_eta=0.5*(oldcell->alpha_eta+newcell->alpha_eta);
-		newHalfIntegralMesh->cell[jx]->GetOmega();		
+		oldcell=oldIntegralMesh->cell[ix];
+		newcell=newIntegralMesh->cell[ix];
+		halfcell=newHalfIntegralMesh->cell[ix];
+		
+		eta=0.5*(newcell->eta+oldcell->eta);
+		tau_eta=0.5*(oldcell->tau_eta+newcell->tau_eta);
+		alpha_eta=0.5*(oldcell->alpha_eta+newcell->alpha_eta);
+		delx=0.5*(newcell->Delx+oldcell->Delx);
+		deldotv=0.0;
+		for(j=1;j<4;j++){
+			for(k=1;k<4;k++){
+				halfcell->omega[j][k]=0.0;
+			}
+		}
+		
+		deldotv=(halfcell->neighborPlus->Vx-halfcell->Vx)/delx;
+		halfcell->omega[1][1]=(4.0/3.0)*deldotv;
+		halfcell->omega[2][2]=halfcell->omega[3][3]=-0.5*halfcell->omega[1][2];
+		
+		for(j=1;j<4;j++){
+			for(k=1;k<4;k++){
+				pitarget=-eta*halfcell->omega[j][k];
+				pipi=0.5*(oldcell->pi_shear[j][k]+newcell->pi_shear[j][k]);
+				newcell->pi_shear[j][k]-=(DT/(tau_eta*alpha_eta))*(pipi-pitarget);
+			}
+		}
+		
+		newHalfIntegralMesh->cell[ix]->GetOmega();
 	}
 }
 
@@ -130,7 +186,7 @@ void CLandau::PropagateVxKx(){
 	int ix,jx,NX=CMeshParameters::NX;
 	CIntegralCell *bulkcella,*bulkcellb;
 	CHalfIntegralCell *oldcell,*newcell;
-	double gradP,gradT,tau_gmma,alpha_gmma,tmpterm;
+	double gradP,gradT,tau_gmma,alpha_gmma,tmpterm,alpha_Kx_factor,gmma,Denom;
 	// First calc Vx
 	for(ix=0;ix<NX;ix++){
 		jx=ix-1;
@@ -142,10 +198,10 @@ void CLandau::PropagateVxKx(){
 		bulkcella=newIntegralMesh->cell[ix];
 		
 		gradP=bulkcellb->Pr-bulkcella->Pr;
-		gradP+=0.5*CEos::kappa*(bulkcellb->grad2Rho-bulkcella->grad2Rho);
+		gradP+=0.5*eos->kappa*(bulkcellb->grad2Rho-bulkcella->grad2Rho);
 		gradP=gradP/(0.5*(bulkcella->Delx+bulkcellb->Delx));
-		newcell->vx=oldcell->vx
-			-gradP/(CEos::mass*0.5*(bulkcella->rho+bulkcellb->rho));
+		newcell->Vx=oldcell->Vx
+			-gradP/(eos->mass*0.5*(bulkcella->rho+bulkcellb->rho));
 	}
 	// Now calc Kx
 	for(ix=0;ix<NX;ix++){
@@ -157,112 +213,24 @@ void CLandau::PropagateVxKx(){
 		bulkcellb=newIntegralMesh->cell[jx];
 		bulkcella=newIntegralMesh->cell[ix];
 		
-		alpha_K_factor=0.5*(bulkcella->alpha_K_factor+bulkcellb->alpha_K_factor);
+		alpha_Kx_factor=0.5*(bulkcella->alpha_Kx_factor+bulkcellb->alpha_Kx_factor);
 		gradT=2.0*(bulkcellb->T-bulkcella->T)/(bulkcella->Delx+bulkcellb->Delx);		
 		
 		
 		tau_gmma=0.5*(bulkcella->tau_gmma+bulkcellb->tau_gmma);
 		gmma=0.5*(bulkcella->gmma+bulkcellb->gmma);
-		alpha_gmma=0.5*(bulkcella->alpha_gmma+bulkcellb->alpha_gmma);
-		tmpterm=0.5*((1.0/tau_alpha)+alpha_gmma));
+		alpha_gmma=alpha_Kx_factor*0.5*(bulkcella->alpha_gmma+bulkcellb->alpha_gmma);
+		tmpterm=0.5*((1.0/tau_gmma)+alpha_gmma);
 	
 		Denom=(1.0/CMeshParameters::DT)+tmpterm;
-		newcell->Kx=oldcell->Kx*((1.0/tau_alpha)-tmpterm)+gmma*gradT/tau_gmma;
-		newcell->Kx=newcell->Kx/Denom;		
+		tau_gmma=eos->Kfactor/alpha_gmma;
+		newcell->Kx=oldcell->Kx*((1.0/tau_gmma)-tmpterm)+gmma*gradT/tau_gmma;
+		newcell->Kx=newcell->Kx/Denom;
 	}
 	
 }
 
-/*
-void CLandau::PrintInfo(){
-	int ix,iy,iz;
-	CIntegalCell *cnew,*cold;
-	CHalfIntegralCell *ccurrent;
-	printf("----------TIME=%g -------------\n",newmesh->t);
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				ccurrent=&(currentmesh->cell[ix][iy][iz]);
-				cold=&(oldmesh->cell[ix][iy][iz]);
-				cnew=&(newmesh->cell[ix][iy][iz]);
-				printf("%3d %3d %3d ",ix,iy,iz);
-				
-				printf(" %12.5e ",cold->jB[0]);
-				printf(" %12.5e ",ccurrent->jB[0]);
-				printf(" %12.5e ",cnew->jB[0]);
-				
-				printf(" %12.5e ",cold->jB[1]);
-				printf(" %12.5e ",ccurrent->jB[1]);
-				printf(" %12.5e ",cnew->jB[1]);
-				
-				if(NY>1){
-					printf(" %12.5e ",cold->jB[2]);
-					printf(" %12.5e ",ccurrent->jB[2]);
-					printf(" %12.5e ",cnew->jB[2]);
-				}
-				if(NZ>1){
-					printf(" %12.5e ",cold->jB[3]);
-					printf(" %12.5e ",ccurrent->jB[3]);
-					printf(" %12.5e ",cnew->jB[3]);
-				}
-				printf("\n");
-			}
-		} 
-	}
+void CLandau::CalcPiTarget(){
+	
 }
-
-void CLandau::WriteInfo(){
-	int ix,iy,iz;
-	double time=newmesh->t;
-	double maxdens=0.0;
-	char filename[100];
-	sprintf(filename,"output/current_t%g.dat",time);
-	CLandauCell *cnew,*cold,*ccurrent;
-	FILE *fptr=fopen(filename,"w");
-	for(ix=0;ix<NX;ix++){
-		for(iy=0;iy<NY;iy++){
-			for(iz=0;iz<NZ;iz++){
-				ccurrent=&(currentmesh->cell[ix][iy][iz]);
-				cold=&(oldmesh->cell[ix][iy][iz]);
-				cnew=&(newmesh->cell[ix][iy][iz]);
-				fprintf(fptr,"%3d %3d %3d ",ix,iy,iz);
-				
-				fprintf(fptr," %12.5e ",cold->jB[0]);
-				fprintf(fptr," %12.5e ",ccurrent->jB[0]);
-				fprintf(fptr," %12.5e ",cnew->jB[0]);
-				if(cnew->jB[0]>maxdens)
-					maxdens=cnew->jB[0];
-				
-				fprintf(fptr," %12.5e ",cold->jB[1]);
-				fprintf(fptr," %12.5e ",ccurrent->jB[1]);
-				fprintf(fptr," %12.5e ",cnew->jB[1]);
-				
-				if(NY>1){
-					fprintf(fptr," %12.5e ",cold->jB[2]);
-					fprintf(fptr," %12.5e ",ccurrent->jB[2]);
-					fprintf(fptr," %12.5e ",cnew->jB[2]);
-				}
-				if(NZ>1){
-					fprintf(fptr," %12.5e ",cold->jB[3]);
-					fprintf(fptr," %12.5e ",ccurrent->jB[3]);
-					fprintf(fptr," %12.5e ",cnew->jB[3]);
-				}
-				fprintf(fptr,"\n");
-			}
-		} 
-	}
-	printf("max density=%g\n",maxdens);
-}
-
-void CLandau::WriteData(){
-	char filename[100];
-	sprintf(filename,"output/data1d_t%g.dat",currentmesh->t);
-	FILE *fptr=fopen(filename,"w");
-	int ix,iy=0,iz=0;
-	for(ix=0;ix<NX;ix++){
-		fprintf(fptr,"%8.3e %10.4e\n",ix*DXYZ,currentmesh->cell[ix][iy][iz].jB[0]);
-	}
-	fclose(fptr);
-}
-*/
 

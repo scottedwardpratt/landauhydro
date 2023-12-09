@@ -16,8 +16,8 @@ CIntegralCell::CIntegralCell(){
 
 void CIntegralCell::Zero(){
 	int i,j;
-	S=Q=rho=sigma=alpha_Zeta=alpha_Kx=tau_Zeta=tau_K=gmma_Pr=Pi=epsilon=grad2Rho=Kx_target=0.0;
-	alpha_eta=alpha_zeta=alpha_gmma=tau_zeta=tau_gmma=0.0;
+	S=Q=rho=Pi=epsilon=grad2Rho=Kx_target=0.0;
+	alpha_eta=alpha_zeta=alpha_gmma=tau_eta=tau_zeta=tau_gmma=0.0;
 	for(i=0;i<4;i++){
 		for(j=0;j<4;j++){
 			SE[i][j]=0.0;
@@ -26,44 +26,31 @@ void CIntegralCell::Zero(){
 	}
 }
 
-
-
+/*
 void CIntegralCell::CalcEpsilonSE(){
 	int i,j;
-	double grad2rho,epsilon,gradrho2=0.0,mass=CEos::mass;
+	double grad2rho,epsilon,gradrho2=0.0,mass=eos->mass;
 	vector<double> gradrho(NDIM+1);
 	epsilon=Pdens[0];
-	printf("-------\nix=%d: before, epsilon=%g\n",ix,epsilon);
 	for(i=1;i<=NDIM;i++)
-		epsilon-=(M[i]*u[i]+0.5*CEos::mass*rho*u[i]*u[i]);
-	printf("now, epsilon=%g\n",epsilon);
+		epsilon-=(M[i]*u[i]+0.5*eos->mass*rho*u[i]*u[i]);
 	grad2rho=Grad2RhoB();
 	CalcGradRhoB(gradrho);
 	for(i=1;i<=NDIM;i++){
 		gradrho2+=gradrho[i]*gradrho[i];
 	}
-	epsilonk=epsilon+0.5*CEos::kappa*rho*grad2rho;
+	epsilonk=epsilon+0.5*eos->kappa*rho*grad2rho;
 	if(epsilonk<0.0){
 		printf("Yikes!!! epsilon=%g, epsilonk=%g, rho=%g\n",epsilon,epsilonk,rho);
 		exit(1);
 	}
-	CEos::CalcEoS_of_rho_epsilon(this);
-	if(T<Tlowest){
-		Tlowest=T;
-		if(Tlowest<0.0){
-			printf("Tlowest=%g\n",T);
-			exit(1);
-		}
-	}
-	if(T>Thighest){
-		Thighest=T;
-	}
+	eos->CalcEoS_of_rho_epsilon(this);
 	for(i=1;i<=NDIM;i++){
 		for(j=1;j<=NDIM;j++){
 			SE[i][j]=pi_shear[i][j];
-			SE[i][j]+=CEos::kappa*gradrho[i]*gradrho[j];
+			SE[i][j]+=eos->kappa*gradrho[i]*gradrho[j];
 			if(i==j)
-				SE[i][j]+=Pr-CEos::kappa*(rho*grad2rho+0.5*gradrho2);
+				SE[i][j]+=Pr-eos->kappa*(rho*grad2rho+0.5*gradrho2);
 			SE[i][j]+=mass*rho*u[i]*u[j];
 		}
 	}
@@ -75,19 +62,20 @@ void CIntegralCell::CalcEpsilonSE(){
 		SE[i][0]=SE[0][i];
 	}
 }
+*/
 
 void CIntegralCell::CalcGrad2Rho(){
 	double dxplus,dxminus,gradrhoplus,gradrhominus;
-	dxplus=0.5*neighorPlus->Delx+0.5*Delx;
+	dxplus=0.5*neighborPlus->Delx+0.5*Delx;
 	dxminus=0.5*neighborMinus->Delx+0.5*Delx;
 	gradrhoplus=(neighborPlus->rho-rho)/dxplus;
 	gradrhominus=(rho-neighborMinus->rho)/dxminus;
-	gradrhoPlus=(gradrhoplus-gradrhominus)/Delx;
+	gradrhoplus=(gradrhoplus-gradrhominus)/Delx;
 }
 
-void CIntegralCell::UpdateBulkQuantities(){
-	CEos::CalcEoS_of_rho_sdens(this);
-	CEos::CalcEtaZetaK(this);
+void CIntegralCell::UpdateQuantities(){
+	eos->CalcEoS_of_rho_sdens(this);
+	eos->CalcEtaZetaK(this);
 }
 
 // Half-Integral Cell
@@ -101,7 +89,8 @@ CHalfIntegralCell::CHalfIntegralCell(){
 }
 
 void CHalfIntegralCell::Zero(){
-	vx=Kx=pi_bulk_target=0.0;
+	int i,j;
+	Vx=Kx=pi_bulk_target=0.0;
 	for(i=0;i<4;i++){
 		for(j=0;j<4;j++){
 			pi_shear_target[i][j]=0.0;
@@ -110,35 +99,11 @@ void CHalfIntegralCell::Zero(){
 }
 
 void CHalfIntegralCell::GetOmega(){
-	omega=0.5*(neighborPlus->Vx-neighborMinus->Vx)/Delx;
-	omega=4.0*omega/3.0;
+	omega[1][1]=0.5*(neighborPlus->Vx-neighborMinus->Vx);
+	omega[1][1]=4.0*omega[1][1]/3.0;
 }
 
-void CHalfIntegralCell::GetDelDotV(){
-	deldotv=0.5*(neighborPlus->Vx-neighborMinus->Vx)/Delx;
-}
-
-
-void CHalfIntegralCell::CalcDxTxx(vector<double> &DxTxx){
-	DxTxx=0.5*(neighborPlus->SE[1][1]-neighborMinus->SE[1][1])/Delx;
-}
-
-double CHalfIntegralCell::DelDotU(CIntegralCell *newcell,CIntegralCell *oldcell){
-	double answer=newcell->neighborPlus->Vx-newcellneighborMinus->Vx;
-	answer+=oldcell->neighborPlus->Vx-oldcell->neighborMinus->Vx;
-	return answer/(2.0*Delx);
-}
-
-void CHalfIntegralCell::Calc_K_target(){
-		K_target=-K*(neighborPlus->T-neighborMinus->T)/(2.0*Delx);
-	}
-
-double CHalfLandauCell::CalcDivK(){
-	int i;
-	double DivF=(neighborPlus->Kx-neighborMinus->Kx);
-	return DivK/(2.0*Delx);
-}
-
+/*
 void CHalfIntegralCell::Calc_pi_shear_target(){
 	int i,j;
 	double deldotv=DelDotU();
@@ -153,13 +118,9 @@ void CHalfIntegralCell::Calc_pi_shear_target(){
 		pi_shear_target[i][i]+=(2.0*eta/3.0)*deldotv;
 	}
 }
-
-void CHalfIntegralCell::Zero(){
-	vx=Kx=0.0;
-}
-
+*/
 
 void CHalfIntegralCell::PrintInfo(){
-	printf("vx=%g, Kx=%g\n",vx,Kx);
+	printf("Vx=%g, Kx=%g\n",Vx,Kx);
 }
 

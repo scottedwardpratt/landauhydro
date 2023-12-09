@@ -46,10 +46,15 @@ public:
 	void PrintInfo();
 	void WriteInfo();
 	void Evolve();
-	void PropagateRhoSdensPI();
-	void PropagateVxKx();
+	void EstimatePiS();
+	void CalcBulkQuantities();
+	void PropagateRho();
 	void PropagateSdens();
 	void PropagatePi();
+	void CalcKxTarget();
+
+	void PropagateVxKx();
+	void CalcPiTarget();
 	CLandau(CparameterMap *parmapset);
 	void CreateMeshes(double tset);
 };
@@ -84,16 +89,23 @@ public:
 	static CLandau *landau;
 	static CEoS *eos;
 	CIntegralCell *neighborMinus,*neighborPlus;
-	// These quantities refer to lower boundary
-	double x,Kx_target;
+	double x; // position of lower boundary
+	
 	// These quantities refer to volume
 	double Delx;
-	double S,Q,rho,alpha_eta,alpha_zeta,alpha_gmma,tau_zeta,tau_gmma,tau_eta,sdens;
-	double Pi,epsilon,epsilonk,grad2Rho;
-	double T,Pr,SoverB,cs2,eta,zeta,gmma;
+	// These are all functions of DelX, S and Q
+	double S,Q,rho,sdens;
+	// These are functions of rho and sdens
+	double eta,zeta,Pi,gmma;
+	double alpha_eta,alpha_zeta,alpha_gmma,tau_zeta,tau_gmma,tau_eta;
+	double epsilon,epsilonk,grad2Rho,alpha_Kx_factor;
+	double T,Pr,SoverB,cs2;
+	double Kx_target; // refers to lower boundary
+	//
+	// These are evolved from Eq.s of Motion
+	double pi_bulk;
 	vector<vector<double>> pi_shear;
 	vector<vector<double>> SE;
-	double pi_bulk;
 	//
 	void Zero();
 	void CalcGrad2Rho();
@@ -104,19 +116,19 @@ public:
 
 class CHalfIntegralCell{
 public:
-	double omega,deldotv;
+	CHalfIntegralCell();
+	double Vx,Kx;
 	static CLandau *landau;
 	static CEoS *eos;
 	// These quantities refer to lower boundaries
-	double vx,Kx;
 	// These quantities refer to volume
-	vector<double> pi_shear_target;
+	vector<vector<double>> pi_shear_target;
 	double pi_bulk_target;
+	static vector<vector<double>> omega;
 	void GetOmega(); // omega=partial_iv_j+partial_jv_i-(2/3)del.v*delta_ij. o
-	void GetDelDotV();
 	void PrintInfo();
-	void Calc_pi_target();
-	CHalfIntegralCell *neighborPlus;
+	void Calc_pi_shear_target();
+	CHalfIntegralCell *neighborPlus,*neighborMinus;
 	void Zero();
 };
 

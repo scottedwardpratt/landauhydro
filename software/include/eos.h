@@ -45,6 +45,7 @@ public:
 	CEoS_FreeGas(CparameterMap *parmapin);
 	void CalcEoS_of_rho_epsilon(CIntegralCell *cell);
 	void CalcEoS_of_rho_T(CIntegralCell *cell);
+	void CalcEoS_of_rho_sdens(CIntegralCell *cell);
 };
 
 class CEoS_VdW : public CEoS{
